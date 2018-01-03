@@ -1,7 +1,65 @@
 #! /usr/bin/python
 
+""" this script detects families operons """
+
+
 import os,sys,re
 from collections import defaultdict
+import random
+
+def kNearestNeighbors(geneList,k,pair2count) :
+    sortedList = sorted(geneList,key=lambda x:x[1])
+    for i in range( len(sortedList) ) :
+
+        if i-k < 0 :
+            start = 0
+        else :
+            start = i-k
+
+
+        if i+k > len(sortedList) :
+            end = 0
+        else :
+            end = i+k
+
+        
+        for j in range(start,end+1) :
+            centroid = sortedList[i]
+            if j == i :
+                continue
+            else :
+                neighbor = sortedList[j]
+                pair = '\t'.join( sorted([centroid,neighbor]) )
+                pair2count[ pair ] += 1
+
+
+def randomizingfamiliesOrder() :
+    ''' how to rendomize families??? '''
+
+    newList = list()
+    for scaffold,strand2geneList in scaffold2strand2geneList.items() :
+        for strand,geneList in strand2geneList.items() :
+            newList.extend(geneList)
+
+    cpt = 0
+    randomizedFamiliesOrder = dict()
+    newListRandomized = random.shuffle(newList)
+    for scaffold,strand2geneList in scaffold2strand2geneList.items() :
+
+        if scaffold not in randomizedFamiliesOrder :
+            randomizedFamiliesOrder[ scaffold ] = defaultdict(list)
+
+        for strand,geneList in strand2geneList.items() :
+            for gene in geneList
+                fakeGene = gene
+                fakeGene[2] = randomizedFamiliesOrder[cpt][2]
+                randomizedFamiliesOrder[scaffold][strand].append(fakeGene)
+                cpt += 1
+                
+    return randomizedFamiliesOrder
+
+
+
 
 family_set = set()
 file = open('coreFamiliesAnnotation.tsv','r')
