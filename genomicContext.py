@@ -210,6 +210,9 @@ if __name__ == "__main__":
             pair2distribution[pair].append(float(weight))
         file.close()
 
+
+    output_filename = 'graph.txt'
+    output = open(output_filename,'w')
     file = open(observation_filename,'r')
     for line in file :
         line = line.rstrip()
@@ -220,5 +223,5 @@ if __name__ == "__main__":
         zscore  = ( ( float(weight) - float(mean) ) / float(std) )
         pvalue = st.norm.cdf(zscore)
         if pvalue > 0.95 :
-            print(pair,weight,mean,std,zscore,pvalue,sep='\t')
+            output.write(pair+'\t'+weight+'\t'+mean+'\t'+std+'\t'+zscore+'\t'+pvalue)
     file.close()
