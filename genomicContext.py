@@ -33,7 +33,7 @@ def kNearestNeighbors(geneList,k,pair2count) :
                 pair2count[ pair ] += 1
 
 
-def randomizingfamiliesOrder() :
+def randomizingfamiliesOrder(scaffold2strand2geneList) :
     ''' how to rendomize families??? '''
 
     newList = list()
@@ -130,3 +130,16 @@ if __name__ == "__main__":
             for strand,geneList in strand2geneList.items() :
                 kNearestNeighbors(geneList,k,pair2weight)
     
+
+    # simulation
+    print("simulation...")
+    N = 100    
+    simulation2pair2weight = dict()
+    for i in range(N) :
+        print(i,end='', flush=True)
+        simulation2pair2weight[i] = defaultdict(int)
+        for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items()
+            for scaffold,strand2geneList in randomizingfamiliesOrder(scaffold2strand2geneList).items() :
+                for strand,geneList in strand2geneList.items() :
+                    kNearestNeighbors(geneList,k,simulation2pair2weight[i])
+                
