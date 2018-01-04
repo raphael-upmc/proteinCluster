@@ -9,21 +9,18 @@ import random
 
 def kNearestNeighbors(geneList,k,pair2count) :
     sortedList = sorted(geneList,key=lambda x:x[1])
-    print(len(sortedList))
     for i in range( len(sortedList) ) :
-        print(sortedList[i])
         if i-k < 0 :
             start = 0
         else :
             start = i-k
 
 
-        if i+k > len(sortedList) :
+        if i+k+1 > len(sortedList) :
             end = len(sortedList)
         else :
-            end = i+k
+            end = i+k+1
 
-        print(str(start)+'..'+str(end))
         for j in range(start,end) :
             centroid = sortedList[i][2]
             if centroid == None :
@@ -32,13 +29,12 @@ def kNearestNeighbors(geneList,k,pair2count) :
             if j == i :
                 continue
             else :
-                print('\t'+str(sortedList[j]))
                 neighbor = sortedList[j][2]
                 if neighbor == None :
                     continue
                 
                 pair = '\t'.join( sorted([centroid,neighbor]) )
-                pair2count[ pair ] += 1
+                pair2count[ pair ] += 0.5
 
 
 def randomizingfamiliesOrder(scaffold2strand2geneList) :
@@ -110,10 +106,26 @@ def genome2familyOrder(familySet,genomeSet) :
     file.close()
     return genome2scaffold2strand2geneList
 
-
-
-
-
+def normalizing(genome2scaffold2strand2geneList) :
+    pair2maxWeight = defaultdict(float)
+    """ for each pair of families, the max number of co-occurrences expected  """
+    for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
+        for scaffold,strand2geneList in scaffold2strand2geneList.items() :
+            for strand,geneList in strand2geneList.items() :
+                for i1 in range(len(newList)) :
+                    for i2 in range(len(newList)) :
+                        if i1 == i2 :
+                            continue
+                        else :
+                            gene1 = newList[i1]
+                            gene2 = newList[i2]
+                            if gene1[2] == None or gene2[2] == None :
+                                continue
+                            else :
+                                pair = '\t'.join( sorted([gene1[2],gene2[2]]) )
+                                pair2maxWeight[pair] += 0.5
+    return pair2maxWeight
+                            
 if __name__ == "__main__":
 
     genomeSet = set()    
@@ -128,20 +140,19 @@ if __name__ == "__main__":
         if module != 'specificNonCprBacteriaCore' :
             familySet.add(family)
     file.close()
-    print(familySet)
-    print(len(familySet))
+    print('number of families: '+str(len(familySet)))
 
     print('genome2familyOrder...')
     genome2scaffold2strand2geneList = genome2familyOrder(familySet,genomeSet)
     print('done')
     
-    pair2weight = defaultdict(int)
+    pair2weight = defaultdict(float)
     k=5
     for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
         for scaffold,strand2geneList in scaffold2strand2geneList.items() :
             for strand,geneList in strand2geneList.items() :
                 kNearestNeighbors(geneList,k,pair2weight)
-    
+    print(len(pair2weight))
     sys.exit()
     # simulation
     print("simulation...")
