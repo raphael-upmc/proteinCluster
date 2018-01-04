@@ -7,6 +7,8 @@ import os,sys,re
 from collections import defaultdict
 import random
 import numpy as np
+import multiprocessing as mp
+
 
 def kNearestNeighbors(geneList,k,pair2count) :
     sortedList = sorted(geneList,key=lambda x:x[1])
@@ -125,7 +127,26 @@ def normalizing(genome2scaffold2strand2geneList) :
                                 pair = '\t'.join( sorted([gene1[2],gene2[2]]) )
                                 pair2maxWeight[pair] += 0.5
     return pair2maxWeight
-                            
+
+
+def simulation(output_filename,genome2scaffold2strand2geneList) :
+    pair2weight = defaultdict(float)
+    genome2scaffold2strand2randomizedGeneList = dict()
+    for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
+        genome2scaffold2strand2randomizedGeneList[genome] = randomizingfamiliesOrder(scaffold2strand2geneList)
+        for scaffold,strand2geneList in genome2scaffold2strand2randomizedGeneList[genome].items() :
+            for strand,geneList in strand2geneList.items() :
+                kNearestNeighbors(geneList,k,pair2weight)
+
+    pair2MaxWeightExpected = normalizing(genome2scaffold2strand2randomizedGeneList)
+    output_filename = str(i)+'.txt'
+    output = open(output_filename,'w')
+    for pair,maxWeightExpected in pair2MaxWeightExpected.items() :
+        weight = pair2weight[ pair ]
+        output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
+    output.close()
+
+
 if __name__ == "__main__":
 
     genomeSet = set()    
@@ -174,21 +195,8 @@ if __name__ == "__main__":
 
     for i in range(N) :
         print(i,flush=False)
-        pair2weight = defaultdict(float)
-        genome2scaffold2strand2randomizedGeneList = dict()
-        for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
-            genome2scaffold2strand2randomizedGeneList[genome] = randomizingfamiliesOrder(scaffold2strand2geneList)
-            for scaffold,strand2geneList in genome2scaffold2strand2randomizedGeneList[genome].items() :
-                for strand,geneList in strand2geneList.items() :
-                    kNearestNeighbors(geneList,k,pair2weight)
-        pair2MaxWeightExpected = normalizing(genome2scaffold2strand2randomizedGeneList)
-
         output_filename = str(i)+'.txt'
-        output = open(output_filename,'w')
-        for pair,maxWeightExpected in pair2MaxWeightExpected.items() :
-            weight = pair2weight[ pair ]
-            output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
-        output.close()
+        simulation(output_filename,genome2scaffold2strand2geneList)
 
     print('done\n')
 
