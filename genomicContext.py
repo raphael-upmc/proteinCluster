@@ -2,10 +2,11 @@
 
 """ this script detects families operons """
 
-
+import scipy.stats as st
 import os,sys,re
 from collections import defaultdict
 import random
+import numpy as np
 
 def kNearestNeighbors(geneList,k,pair2count) :
     sortedList = sorted(geneList,key=lambda x:x[1])
@@ -147,38 +148,77 @@ if __name__ == "__main__":
 
     # observation
     k=5
+    observation_filename = 'output.txt'
+    
+    pair2weight = defaultdict(float)
+
+    for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
+        for scaffold,strand2geneList in scaffold2strand2geneList.items() :
+            for strand,geneList in strand2geneList.items() :
+                kNearestNeighbors(geneList,k,pair2weight)
+    print(len(pair2weight))
+
+    pair2MaxWeightExpected = normalizing(genome2scaffold2strand2geneList)
+    print(len(pair2MaxWeightExpected))
+
+    output = open('output.txt','w')
+    for pair,weight in pair2weight.items() :
+        maxWeightExpected = pair2MaxWeightExpected[ pair ]
+        output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
+    output.close()
 
     
-    # pair2weight = defaultdict(float)
-
-    # for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
-    #     for scaffold,strand2geneList in scaffold2strand2geneList.items() :
-    #         for strand,geneList in strand2geneList.items() :
-    #             kNearestNeighbors(geneList,k,pair2weight)
-    # print(len(pair2weight))
-
-    # pair2MaxWeightExpected = normalizing(genome2scaffold2strand2geneList)
-    # print(len(pair2MaxWeightExpected))
-
-    # output = open('output.txt','w')
-    # for pair,weight in pair2weight.items() :
-    #     maxWeightExpected = pair2MaxWeightExpected[ pair ]
-    #     output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
-    # output.close()
-
-
     # simulation
     print("simulation...")
     N = 10    
 
     for i in range(N) :
         print(i,flush=False)
-        pair2weight = dict()
+        pair2weight = defaultdict(float)
         genome2scaffold2strand2randomizedGeneList = dict()
         for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
-            print(genome)
             genome2scaffold2strand2randomizedGeneList[genome] = randomizingfamiliesOrder(scaffold2strand2geneList)
             for scaffold,strand2geneList in genome2scaffold2strand2randomizedGeneList[genome].items() :
                 for strand,geneList in strand2geneList.items() :
                     kNearestNeighbors(geneList,k,pair2weight)
-        pair2MaxWeightExpected = normalizing(genome2scaffold2strand2randomizedGeneList)        
+        pair2MaxWeightExpected = normalizing(genome2scaffold2strand2randomizedGeneList)
+
+        output_filename = str(i)+'.txt'
+        output = open(output_filename,'w')
+        for pair,maxWeightExpected in pair2MaxWeightExpected.items() :
+            weight = pair2weight[ pair ]
+            output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
+        output.close()
+
+    print('done\n')
+
+    # analyzing the results
+    print("analizing the results...")
+
+
+
+    
+    pair2distribution = defaultdict(list)
+    for i in range(N) :
+        print(i,flush=False)
+        simulation_filename = str(i)+'.txt'
+        file = open(simulation_filename,'r')
+        for line in file :
+            line = line.rstrip()
+            fam1,fam2,weight = line.split('\t')
+            pair = fam1+'\t'+fam2
+            pair2distribution[pair].append(float(weight))
+        file.close()
+
+    file = open(observation_filename,'r')
+    for line in file :
+        line = line.rstrip()
+        fam1,fam2,weight = line.split('\t')
+        pair = fam1+'\t'+fam2
+        mean = np.mean(pair2distribution[pair])
+        std = np.std(pair2distribution[pair])
+        zscore  = ( ( float(weight) - float(mean) ) / float(std) )
+        pvalue = st.norm.cdf(zscore)
+        if pvalue > 0.95 :
+            print(pair,weight,mean,std,zscore,pvalue,sep='\t')
+    file.close()
