@@ -166,9 +166,11 @@ if __name__ == "__main__":
     genome2scaffold2strand2geneList = genome2familyOrder(familySet,genomeSet)
     print('done\n')
 
-    # observation
+    ######################
+    # observation module #
+    ######################    
     print('observation...')
-    k=5
+    k=2
     observation_filename = 'output.txt'
     
     pair2weight = defaultdict(float)
@@ -188,24 +190,26 @@ if __name__ == "__main__":
         output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
     output.close()
     print('done\n')
+
     
-    # simulation
+    #####################
+    # simulation module #
+    #####################    
     print("simulation...")
     N = 10
-
     results = list()
     pool = mp.Pool(processes=10,maxtasksperchild=1) # start 20 worker processes and 1 maxtasksperchild in order to release memory
     for i in range(N) :        
         print(i,flush=False)
         output_filename = str(i)+'.txt'
-#        simulation(output_filename,genome2scaffold2strand2geneList)
         results.append( pool.apply_async( simulation, args= (output_filename,genome2scaffold2strand2geneList) ))
-
     pool.close() # Prevents any more tasks from being submitted to the pool
     pool.join() # Wait for the worker processes to exit
 
-
-    # analyzing the results
+    
+    #########################
+    # analyzing the results #
+    #########################
     print("analizing the results...")
     
     pair2distribution = defaultdict(list)
