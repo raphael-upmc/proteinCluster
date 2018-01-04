@@ -139,7 +139,6 @@ def simulation(output_filename,genome2scaffold2strand2geneList) :
                 kNearestNeighbors(geneList,k,pair2weight)
 
     pair2MaxWeightExpected = normalizing(genome2scaffold2strand2randomizedGeneList)
-    output_filename = str(i)+'.txt'
     output = open(output_filename,'w')
     for pair,maxWeightExpected in pair2MaxWeightExpected.items() :
         weight = pair2weight[ pair ]
@@ -161,13 +160,14 @@ if __name__ == "__main__":
         if module != 'specificNonCprBacteriaCore' :
             familySet.add(family)
     file.close()
-    print('number of families: '+str(len(familySet)))
+    print('number of families: '+str(len(familySet))+'\n')
 
-    print('genome2familyOrder...')
+    print('reading genomic architectures...')
     genome2scaffold2strand2geneList = genome2familyOrder(familySet,genomeSet)
-    print('done')
+    print('done\n')
 
     # observation
+    print('observation...')
     k=5
     observation_filename = 'output.txt'
     
@@ -187,24 +187,26 @@ if __name__ == "__main__":
         maxWeightExpected = pair2MaxWeightExpected[ pair ]
         output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
     output.close()
-
+    print('done\n')
     
     # simulation
     print("simulation...")
-    N = 10    
+    N = 10
 
-    for i in range(N) :
+    results = list()
+    pool = mp.Pool(processes=10,maxtasksperchild=1) # start 20 worker processes and 1 maxtasksperchild in order to release memory
+    for i in range(N) :        
         print(i,flush=False)
         output_filename = str(i)+'.txt'
-        simulation(output_filename,genome2scaffold2strand2geneList)
+#        simulation(output_filename,genome2scaffold2strand2geneList)
+        results.append( pool.apply_async( simulation, args= (output_filename,genome2scaffold2strand2geneList) ))
 
-    print('done\n')
+    pool.close() # Prevents any more tasks from being submitted to the pool
+    pool.join() # Wait for the worker processes to exit
+
 
     # analyzing the results
     print("analizing the results...")
-
-
-
     
     pair2distribution = defaultdict(list)
     for i in range(N) :
@@ -231,5 +233,5 @@ if __name__ == "__main__":
         zscore  = ( ( float(weight) - float(mean) ) / float(std) )
         pvalue = st.norm.cdf(zscore)
         if pvalue > 0.95 :
-            output.write(pair+'\t'+weight+'\t'+mean+'\t'+std+'\t'+zscore+'\t'+pvalue)
+            output.write(pair+'\t'+str(weight)+'\t'+str(mean)+'\t'+str(std)+'\t'+str(zscore)+'\t'+str(pvalue)+'\n')
     file.close()
