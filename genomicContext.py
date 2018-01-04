@@ -9,8 +9,9 @@ import random
 
 def kNearestNeighbors(geneList,k,pair2count) :
     sortedList = sorted(geneList,key=lambda x:x[1])
+    print(len(sortedList))
     for i in range( len(sortedList) ) :
-
+        print(sortedList[i])
         if i-k < 0 :
             start = 0
         else :
@@ -18,17 +19,24 @@ def kNearestNeighbors(geneList,k,pair2count) :
 
 
         if i+k > len(sortedList) :
-            end = 0
+            end = len(sortedList)
         else :
             end = i+k
 
-        
-        for j in range(start,end+1) :
-            centroid = sortedList[i]
+        print(str(start)+'..'+str(end))
+        for j in range(start,end) :
+            centroid = sortedList[i][2]
+            if centroid == None :
+                continue
+            
             if j == i :
                 continue
             else :
-                neighbor = sortedList[j]
+                print('\t'+str(sortedList[j]))
+                neighbor = sortedList[j][2]
+                if neighbor == None :
+                    continue
+                
                 pair = '\t'.join( sorted([centroid,neighbor]) )
                 pair2count[ pair ] += 1
 
@@ -50,7 +58,7 @@ def randomizingfamiliesOrder(scaffold2strand2geneList) :
             randomizedFamiliesOrder[ scaffold ] = defaultdict(list)
 
         for strand,geneList in strand2geneList.items() :
-            for gene in geneList
+            for gene in geneList :
                 fakeGene = gene
                 fakeGene[2] = randomizedFamiliesOrder[cpt][2]
                 randomizedFamiliesOrder[scaffold][strand].append(fakeGene)
@@ -72,8 +80,9 @@ def orf2familyFunction() :
 
 def genome2familyOrder(familySet,genomeSet) :
     orf2family = orf2familyFunction()
-    feature_filename = ""
     genome2scaffold2strand2geneList = dict()
+    feature_filename = "3600genomes.4pub.all.genomeFeature"
+    file = open(feature_filename,'r')
     for line in file :
         line = line.rstrip()
         orfName,genome,scaffold,start,end,strand = line.split("\t")
@@ -96,6 +105,7 @@ def genome2familyOrder(familySet,genomeSet) :
         if scaffold not in genome2scaffold2strand2geneList[genome] :
             genome2scaffold2strand2geneList[genome][scaffold] = defaultdict(list)
 
+#        print(start,end,family,sep='\t')
         genome2scaffold2strand2geneList[genome][scaffold][strand].append([ int(start) , int(end) , family ])
     file.close()
     return genome2scaffold2strand2geneList
@@ -108,7 +118,7 @@ if __name__ == "__main__":
 
     genomeSet = set()    
     familySet = set()
-    file = open('coreFamiliesAnnotation.tsv','r')
+    file = open('/home/meheurap/proteinCluster/coreCPR/coreFamiliesAnnotation.tsv','r')
     header = next(file)
     for line in file :
         line = line.rstrip()
@@ -121,8 +131,10 @@ if __name__ == "__main__":
     print(familySet)
     print(len(familySet))
 
+    print('genome2familyOrder...')
     genome2scaffold2strand2geneList = genome2familyOrder(familySet,genomeSet)
-
+    print('done')
+    
     pair2weight = defaultdict(int)
     k=5
     for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
@@ -130,7 +142,7 @@ if __name__ == "__main__":
             for strand,geneList in strand2geneList.items() :
                 kNearestNeighbors(geneList,k,pair2weight)
     
-
+    sys.exit()
     # simulation
     print("simulation...")
     N = 100    
@@ -138,7 +150,7 @@ if __name__ == "__main__":
     for i in range(N) :
         print(i,end='', flush=True)
         simulation2pair2weight[i] = defaultdict(int)
-        for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items()
+        for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
             for scaffold,strand2geneList in randomizingfamiliesOrder(scaffold2strand2geneList).items() :
                 for strand,geneList in strand2geneList.items() :
                     kNearestNeighbors(geneList,k,simulation2pair2weight[i])
