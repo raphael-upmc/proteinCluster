@@ -40,23 +40,22 @@ def kNearestNeighbors(geneList,k,pair2count) :
 def randomizingfamiliesOrder(scaffold2strand2geneList) :
     ''' how to rendomize families??? '''
 
-    newList = list()
+    newListRandomized = list()
     for scaffold,strand2geneList in scaffold2strand2geneList.items() :
         for strand,geneList in strand2geneList.items() :
-            newList.extend(geneList)
-
+            newListRandomized.extend(geneList)
+            
     cpt = 0
     randomizedFamiliesOrder = dict()
-    newListRandomized = random.shuffle(newList)
+    random.shuffle(newListRandomized)
     for scaffold,strand2geneList in scaffold2strand2geneList.items() :
-
         if scaffold not in randomizedFamiliesOrder :
             randomizedFamiliesOrder[ scaffold ] = defaultdict(list)
 
         for strand,geneList in strand2geneList.items() :
             for gene in geneList :
                 fakeGene = gene
-                fakeGene[2] = randomizedFamiliesOrder[cpt][2]
+                fakeGene[2] = newListRandomized[cpt][2]
                 randomizedFamiliesOrder[scaffold][strand].append(fakeGene)
                 cpt += 1
                 
@@ -112,13 +111,13 @@ def normalizing(genome2scaffold2strand2geneList) :
     for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
         for scaffold,strand2geneList in scaffold2strand2geneList.items() :
             for strand,geneList in strand2geneList.items() :
-                for i1 in range(len(newList)) :
-                    for i2 in range(len(newList)) :
+                for i1 in range(len(geneList)) :
+                    for i2 in range(len(geneList)) :
                         if i1 == i2 :
                             continue
                         else :
-                            gene1 = newList[i1]
-                            gene2 = newList[i2]
+                            gene1 = geneList[i1]
+                            gene2 = geneList[i2]
                             if gene1[2] == None or gene2[2] == None :
                                 continue
                             else :
@@ -145,24 +144,41 @@ if __name__ == "__main__":
     print('genome2familyOrder...')
     genome2scaffold2strand2geneList = genome2familyOrder(familySet,genomeSet)
     print('done')
-    
-    pair2weight = defaultdict(float)
+
+    # observation
     k=5
-    for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
-        for scaffold,strand2geneList in scaffold2strand2geneList.items() :
-            for strand,geneList in strand2geneList.items() :
-                kNearestNeighbors(geneList,k,pair2weight)
-    print(len(pair2weight))
-    sys.exit()
+
+    
+    # pair2weight = defaultdict(float)
+
+    # for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
+    #     for scaffold,strand2geneList in scaffold2strand2geneList.items() :
+    #         for strand,geneList in strand2geneList.items() :
+    #             kNearestNeighbors(geneList,k,pair2weight)
+    # print(len(pair2weight))
+
+    # pair2MaxWeightExpected = normalizing(genome2scaffold2strand2geneList)
+    # print(len(pair2MaxWeightExpected))
+
+    # output = open('output.txt','w')
+    # for pair,weight in pair2weight.items() :
+    #     maxWeightExpected = pair2MaxWeightExpected[ pair ]
+    #     output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
+    # output.close()
+
+
     # simulation
     print("simulation...")
-    N = 100    
-    simulation2pair2weight = dict()
+    N = 10    
+
     for i in range(N) :
-        print(i,end='', flush=True)
-        simulation2pair2weight[i] = defaultdict(int)
+        print(i,flush=False)
+        pair2weight = dict()
+        genome2scaffold2strand2randomizedGeneList = dict()
         for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
-            for scaffold,strand2geneList in randomizingfamiliesOrder(scaffold2strand2geneList).items() :
+            print(genome)
+            genome2scaffold2strand2randomizedGeneList[genome] = randomizingfamiliesOrder(scaffold2strand2geneList)
+            for scaffold,strand2geneList in genome2scaffold2strand2randomizedGeneList[genome].items() :
                 for strand,geneList in strand2geneList.items() :
-                    kNearestNeighbors(geneList,k,simulation2pair2weight[i])
-                
+                    kNearestNeighbors(geneList,k,pair2weight)
+        pair2MaxWeightExpected = normalizing(genome2scaffold2strand2randomizedGeneList)        
