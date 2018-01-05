@@ -40,9 +40,8 @@ def kNearestNeighbors(geneList,k,pair2count) :
                 pair2count[ pair ] += 0.5
 
 
-def randomizingfamiliesOrder(scaffold2strand2geneList) :
-    ''' how to rendomize families??? '''
-
+def randomizingfamiliesOrderPerGenome(scaffold2strand2geneList) :
+    ''' randomizing family order for each genome '''
     newListRandomized = list()
     for scaffold,strand2geneList in scaffold2strand2geneList.items() :
         for strand,geneList in strand2geneList.items() :
@@ -60,8 +59,36 @@ def randomizingfamiliesOrder(scaffold2strand2geneList) :
                 fakeGene = gene
                 fakeGene[2] = newListRandomized[cpt][2]
                 randomizedFamiliesOrder[scaffold][strand].append(fakeGene)
-                cpt += 1
-                
+                cpt += 1                
+    return randomizedFamiliesOrder
+
+
+
+def randomizingfamiliesOrderPerContig(scaffold2strand2geneList) :
+    ''' randomizing family order for each contig '''
+
+    scaffold2newListRandomized = dict()
+    for scaffold,strand2geneList in scaffold2strand2geneList.items() :
+        if scaffold not in scaffold2newListRandomized :
+            scaffold2newListRandomized[ scaffold ] = defaultdict(list)
+
+        for strand,geneList in strand2geneList.items() :
+            scaffold2newListRandomized[ scaffold ][strand].extend(geneList)
+            random.shuffle(scaffold2newListRandomized[ scaffold ][strand])
+            
+
+    randomizedFamiliesOrder = dict()
+    for scaffold,strand2geneList in scaffold2strand2geneList.items() :
+        if scaffold not in randomizedFamiliesOrder :
+            randomizedFamiliesOrder[ scaffold ] = defaultdict(list)
+
+        for strand,geneList in strand2geneList.items() :
+            cpt = 0
+            for gene in geneList :
+                fakeGene = gene
+                fakeGene[2] = scaffold2newListRandomized[scaffold][strand][cpt][2]
+                randomizedFamiliesOrder[scaffold][strand].append(fakeGene)
+                cpt += 1                
     return randomizedFamiliesOrder
 
 
@@ -133,7 +160,7 @@ def simulation(output_filename,genome2scaffold2strand2geneList) :
     pair2weight = defaultdict(float)
     genome2scaffold2strand2randomizedGeneList = dict()
     for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
-        genome2scaffold2strand2randomizedGeneList[genome] = randomizingfamiliesOrder(scaffold2strand2geneList)
+        genome2scaffold2strand2randomizedGeneList[genome] = randomizingfamiliesOrderPerContig(scaffold2strand2geneList)
         for scaffold,strand2geneList in genome2scaffold2strand2randomizedGeneList[genome].items() :
             for strand,geneList in strand2geneList.items() :
                 kNearestNeighbors(geneList,k,pair2weight)
@@ -236,6 +263,6 @@ if __name__ == "__main__":
         std = np.std(pair2distribution[pair])
         zscore  = ( ( float(weight) - float(mean) ) / float(std) )
         pvalue = st.norm.cdf(zscore)
-        if pvalue > 0.95 :
+        if pvalue > 0.9999 :
             output.write(pair+'\t'+str(weight)+'\t'+str(mean)+'\t'+str(std)+'\t'+str(zscore)+'\t'+str(pvalue)+'\n')
     file.close()
