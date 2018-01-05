@@ -160,7 +160,7 @@ def simulation(output_filename,genome2scaffold2strand2geneList) :
     pair2weight = defaultdict(float)
     genome2scaffold2strand2randomizedGeneList = dict()
     for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
-        genome2scaffold2strand2randomizedGeneList[genome] = randomizingfamiliesOrderPerContig(scaffold2strand2geneList)
+        genome2scaffold2strand2randomizedGeneList[genome] = randomizingfamiliesOrderPerGenome(scaffold2strand2geneList)
         for scaffold,strand2geneList in genome2scaffold2strand2randomizedGeneList[genome].items() :
             for strand,geneList in strand2geneList.items() :
                 kNearestNeighbors(geneList,k,pair2weight)
@@ -184,11 +184,27 @@ if __name__ == "__main__":
         liste = line.split('\t')
         family = liste[1]
         module = liste[0]
-        if module != 'specificNonCprBacteriaCore' :
+        if module != 'specificCprCore' :
             familySet.add(family)
     file.close()
     print('number of families: '+str(len(familySet))+'\n')
 
+
+    
+    file = open('/home/meheurap/proteinCluster/taxonomy/bin2nearestTaxaGroup.txt','r')
+    for line in file :
+        line = line.rstrip()
+        liste = line.split('\t')
+        genome = liste[0]
+        lineage = liste[3]
+        cpr = lineage.split(',')[-3]
+        if cpr == 'non-CPR-Bacteria' :
+            genomeSet.add(genome)
+        else :
+            continue
+    file.close()
+    print('number of genomes: '+str(len(genomeSet))+'\n')
+    
     print('reading genomic architectures...')
     genome2scaffold2strand2geneList = genome2familyOrder(familySet,genomeSet)
     print('done\n')
@@ -223,9 +239,9 @@ if __name__ == "__main__":
     # simulation module #
     #####################    
     print("simulation...")
-    N = 10
+    N = 30
     results = list()
-    pool = mp.Pool(processes=10,maxtasksperchild=1) # start 20 worker processes and 1 maxtasksperchild in order to release memory
+    pool = mp.Pool(processes=15,maxtasksperchild=1) # start 20 worker processes and 1 maxtasksperchild in order to release memory
     for i in range(N) :        
         print(i,flush=False)
         output_filename = str(i)+'.txt'
@@ -261,8 +277,12 @@ if __name__ == "__main__":
         pair = fam1+'\t'+fam2
         mean = np.mean(pair2distribution[pair])
         std = np.std(pair2distribution[pair])
-        zscore  = ( ( float(weight) - float(mean) ) / float(std) )
-        pvalue = st.norm.cdf(zscore)
+        try :
+            zscore  = ( ( float(weight) - float(mean) ) / float(std) )
+            pvalue = st.norm.cdf(zscore)
+        except :
+            print(pair,weight,mean,std)
+            continue
         if pvalue > 0.9999 :
             output.write(pair+'\t'+str(weight)+'\t'+str(mean)+'\t'+str(std)+'\t'+str(zscore)+'\t'+str(pvalue)+'\n')
     file.close()
