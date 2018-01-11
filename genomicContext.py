@@ -184,7 +184,7 @@ if __name__ == "__main__":
         liste = line.split('\t')
         family = liste[1]
         module = liste[0]
-        if module != 'specificCprCore' :
+        if module != 'specificNonCprBacteriaCore' :
             familySet.add(family)
     file.close()
     print('number of families: '+str(len(familySet))+'\n')
@@ -198,7 +198,7 @@ if __name__ == "__main__":
         genome = liste[0]
         lineage = liste[3]
         cpr = lineage.split(',')[-3]
-        if cpr == 'non-CPR-Bacteria' :
+        if cpr == 'CPR' :
             genomeSet.add(genome)
         else :
             continue
