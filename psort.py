@@ -20,7 +20,7 @@ def runPsort(filename) :
 
 
 def parsePsort(output_filename) :
-    print(output_filename)
+    print('writting results in '+output_filename)
     tag_header = 0
     output = open(output_filename,'w')
     for root, dirs, files in os.walk("psort_tmp/output"):
@@ -39,13 +39,11 @@ def parsePsort(output_filename) :
     output.close()
 
 
+    
 fasta_filename = sys.argv[1]
 output_filename = sys.argv[2]
 cpu = int(sys.argv[3])
 nb = int(sys.argv[4])
-
-
-
 
 
 if os.path.exists('psort_tmp') :
