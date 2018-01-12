@@ -26,7 +26,7 @@ for line in file :
     orfName,genome,subfamily,family,clan = line.split("\t")
     if family not in familySet :
         continue
-    family2bin[ family ].add(genome)
+    family2bin[ family ].add(genome.rstrip())
 file.close()
 
 
