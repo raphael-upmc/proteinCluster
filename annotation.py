@@ -49,6 +49,7 @@ class Orf:
         self.pfam = list()
         self.tmhmm = -1
         self.kegg = "Na"
+        self.psort = "Na"
         
     def __len__(self):
         return len(self.seq)
@@ -119,12 +120,16 @@ class ProteinCluster :
 
     def oneLineAnnotation(self) :
         """ sumarizing ProteinCluster annotation with one line """
-        annot2count = {"sequenceLength" : [] , "ggkbase" : defaultdict(int) , "signalP" : 0 , "TMHMM" : [] , "pfam" : defaultdict(int) , "keggBigCategory" : defaultdict(int) , "keggCategory" : defaultdict(int) , "keggPathway" : defaultdict(int) , "keggAccession" : defaultdict(int) , "keggDescription" : defaultdict(int) , "CPR" : set() , "non-CPR-Bacteria" : set() , "non-DPANN-Archaea" : set() , "DPANN" : set() }
+        annot2count = {"sequenceLength" : [] , "ggkbase" : defaultdict(int) , "signalP" : 0 , "TMHMM" : [] , "pfam" : defaultdict(int) , "keggBigCategory" : defaultdict(int) , "keggCategory" : defaultdict(int) , "keggPathway" : defaultdict(int) , "keggAccession" : defaultdict(int) , "keggDescription" : defaultdict(int) , "psort" : defaultdict(int), "CPR" : set() , "non-CPR-Bacteria" : set() , "non-DPANN-Archaea" : set() , "DPANN" : set() }
         unknown_set = set( [ "hypothetical","Uncharacterized","seg","unannotated" ] )
         for orfName,orfObject in self.orfDict.items() :            
             # sequence length
             annot2count["sequenceLength"].append(len(orfObject))
 
+            # psort annotation
+            annot2count["psort"][orfObject.psort] += 1
+
+            
             # ggkbase annotation
             if orfObject.ggkbase in unknown_set :
                 annot2count["ggkbase"]["unknown"] += 1
@@ -177,6 +182,10 @@ class ProteinCluster :
         ggkbase = sorted(annot2count["ggkbase"].items(),key=itemgetter(1),reverse=True)[0]
         ggkbase = ggkbase[0]+" ("+str( format( float(ggkbase[1])/float(len(self)) , '.2f' ) )+")"
 
+        psort = sorted(annot2count["psort"].items(),key=itemgetter(1),reverse=True)[0]
+        psort = psort[0]+" ("+str( format( float(psort[1])/float(len(self)) , '.2f' ) )+")"
+
+        
         pfam = sorted(annot2count["pfam"].items(),key=itemgetter(1),reverse=True)[0]
         pfam = pfam[0]+" ("+str( format( float(pfam[1])/float(len(self)) , '.2f' ) )+")"
 
@@ -200,7 +209,7 @@ class ProteinCluster :
         dpann = str(len(annot2count['DPANN']))
         nonDpannArchaea = str(len(annot2count['non-DPANN-Archaea']))
         
-        result = self.name+"\t"+str(int(len(self)))+"\t"+str(int(np.median(annot2count["sequenceLength"])))+"\t"+str(format( float(annot2count["signalP"])/float(len(self)) , '.2f'))+"\t"+str(int(np.median(annot2count["TMHMM"])))+"\t"+ggkbase+"\t"+pfam+"\t"+keggAccession+"\t"+keggDescription+'\t'+keggPathway+"\t"+keggCategory+"\t"+keggBigCategory+"\t"+cpr+"\t"+nonCprBacteria+"\t"+dpann+"\t"+nonDpannArchaea
+        result = self.name+"\t"+str(int(len(self)))+"\t"+str(int(np.median(annot2count["sequenceLength"])))+"\t"+str(format( float(annot2count["signalP"])/float(len(self)) , '.2f'))+"\t"+str(int(np.median(annot2count["TMHMM"])))+"\t"+psort+"\t"+ggkbase+"\t"+pfam+"\t"+keggAccession+"\t"+keggDescription+'\t'+keggPathway+"\t"+keggCategory+"\t"+keggBigCategory+"\t"+cpr+"\t"+nonCprBacteria+"\t"+dpann+"\t"+nonDpannArchaea
         return result
     
     def writtingFasta(self,output_filename):
@@ -319,6 +328,22 @@ class DatasetAnnotation:
                 self.orfName2orfObjet[orfName].tmhmm = result 
         file.close()
 
+    def addingPsortAnnotation(self) :
+        psort_filename = "/home/meheurap/proteinCluster/coreCPR/cprOnly.psort"
+        file = open(psort_filename,"r")
+        header = next(file)
+        for line in file :
+            line = line.rstrip()            
+            liste = line.split()
+            orfName = liste[0].split()[0]
+            localisation = liste[-5]
+            if not self.orfName2orfObjet[orfName].psort == "Na" :
+                sys.exit(orfName+" already have psort prediction!")
+            else :
+                self.orfName2orfObjet[orfName].psort = localisation
+        file.close()
+
+        
     def addingPfamAnnotation(self,pfamAccession2pfamObject) :
         cpt = 0
         orf2architecture = defaultdict(list)
@@ -395,6 +420,9 @@ if __name__ == "__main__":
     
     print("fillingOrf...")
     dataset.fillingOrf()
+
+    print("adding Psort...")
+    dataset.addingPsortAnnotation()
     
     print("adding TMHMM...")
     dataset.addingTmhmmAnnotation()
@@ -414,7 +442,7 @@ if __name__ == "__main__":
 
     output_filename = "family2annotation.txt"
     output = open(output_filename,"w")
-    output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","Ggkbase","Pfam",'keggAccession','keggDescription','keggPathway','keggCategory','keggBigCategory','CPR','non-CPR-Bacteria','DPANN','non-DPANN-Archaea'])+"\n")
+    output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","psort","Ggkbase","Pfam",'keggAccession','keggDescription','keggPathway','keggCategory','keggBigCategory','CPR','non-CPR-Bacteria','DPANN','non-DPANN-Archaea'])+"\n")
     for family,familyObject in dataset.clusterName2clusterObject.items() :
         output.write(familyObject.oneLineAnnotation()+"\n")
     output.close()
