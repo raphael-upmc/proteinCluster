@@ -40,8 +40,10 @@ def parsePsort(output_filename) :
 
 
 fasta_filename = sys.argv[1]
-cpu = int(sys.argv[2])
-output_filename = sys.argv[3]
+output_filename = sys.argv[2]
+cpu = int(sys.argv[3])
+nb = int(sys.argv[4])
+
 
 
 
@@ -54,8 +56,6 @@ else :
     os.mkdir('psort_tmp/log')
     os.mkdir('psort_tmp/output')
     
-
-nb = 898
 
 ###################
 # splitting fasta #
