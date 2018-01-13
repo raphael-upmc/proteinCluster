@@ -334,13 +334,19 @@ class DatasetAnnotation:
         header = next(file)
         for line in file :
             line = line.rstrip()            
-            liste = line.split()
+            liste = line.split('\t')
             orfName = liste[0].split()[0]
             localisation = liste[-5]
+            finalScore = float(liste[-3])
+            cytoplasmicScore = float(liste[-9])
             if not self.orfName2orfObjet[orfName].psort == "Na" :
                 sys.exit(orfName+" already have psort prediction!")
             else :
-                self.orfName2orfObjet[orfName].psort = localisation
+                if localisation == 'Unknown' and finalScore > 4 and cytoplasmicScore < 4 :
+                    localisation = 'Exported'
+                    self.orfName2orfObjet[orfName].psort = localisation
+                else :
+                    self.orfName2orfObjet[orfName].psort = localisation
         file.close()
 
         
