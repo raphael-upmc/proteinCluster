@@ -329,7 +329,7 @@ class DatasetAnnotation:
         file.close()
 
     def addingPsortAnnotation(self) :
-        psort_filename = "/home/meheurap/proteinCluster/coreCPR/cprOnly.psort"
+        psort_filename = "/home/meheurap/proteinCluster/motifs/cpr.psort"
         file = open(psort_filename,"r")
         header = next(file)
         for line in file :
