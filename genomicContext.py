@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
 """ this script detects families operons """
 
@@ -177,26 +177,26 @@ if __name__ == "__main__":
 
     genomeSet = set()    
     familySet = set()
-    file = open('/home/meheurap/proteinCluster/coreCPR/coreFamiliesAnnotation.tsv','r')
+    file = open('/home/meheurap/proteinCluster/coreCPR/completeness_0.7_0.1_dRep_0.95/coreGenomeCprModule_annotation.tsv','r')
     header = next(file)
     for line in file :
         line = line.rstrip()
         liste = line.split('\t')
         family = liste[1]
         module = liste[0]
-        if module != 'specificNonCprBacteriaCore' :
-            familySet.add(family)
+        familySet.add(family)
     file.close()
     print('number of families: '+str(len(familySet))+'\n')
 
 
     
-    file = open('/home/meheurap/proteinCluster/taxonomy/bin2nearestTaxaGroup.txt','r')
+    file = open('/home/meheurap/proteinCluster/taxonomy/bin2taxonomy.txt','r')
+    header = next(file)
     for line in file :
         line = line.rstrip()
         liste = line.split('\t')
         genome = liste[0]
-        lineage = liste[3]
+        lineage = liste[2]
         cpr = lineage.split(',')[-3]
         if cpr == 'CPR' :
             genomeSet.add(genome)
@@ -213,15 +213,19 @@ if __name__ == "__main__":
     # observation module #
     ######################    
     print('observation...')
-    k=2
+    k=5
+    print('k: '+str(k))
     observation_filename = 'output.txt'
     
     pair2weight = defaultdict(float)
-
+    family2genomes = defaultdict(list)
     for genome,scaffold2strand2geneList in genome2scaffold2strand2geneList.items() :
         for scaffold,strand2geneList in scaffold2strand2geneList.items() :
             for strand,geneList in strand2geneList.items() :
                 kNearestNeighbors(geneList,k,pair2weight)
+                for gene in geneList :
+                    family2genomes[ gene[2] ].append(genome)
+                    
     print(len(pair2weight))
 
     pair2MaxWeightExpected = normalizing(genome2scaffold2strand2geneList)
@@ -230,7 +234,7 @@ if __name__ == "__main__":
     output = open('output.txt','w')
     for pair,weight in pair2weight.items() :
         maxWeightExpected = pair2MaxWeightExpected[ pair ]
-        output.write(pair+'\t'+str(weight/maxWeightExpected)+'\n')
+        output.write(pair+'\t'+str(weight/maxWeightExpected)+'\t'+str(weight)+'\n')
     output.close()
     print('done\n')
 
@@ -239,11 +243,11 @@ if __name__ == "__main__":
     # simulation module #
     #####################    
     print("simulation...")
-    N = 30
+    N = 50
     results = list()
     pool = mp.Pool(processes=15,maxtasksperchild=1) # start 20 worker processes and 1 maxtasksperchild in order to release memory
     for i in range(N) :        
-        print(i,flush=False)
+        print(i)
         output_filename = str(i)+'.txt'
         results.append( pool.apply_async( simulation, args= (output_filename,genome2scaffold2strand2geneList) ))
     pool.close() # Prevents any more tasks from being submitted to the pool
@@ -257,7 +261,7 @@ if __name__ == "__main__":
     
     pair2distribution = defaultdict(list)
     for i in range(N) :
-        print(i,flush=False)
+        print(i)
         simulation_filename = str(i)+'.txt'
         file = open(simulation_filename,'r')
         for line in file :
@@ -268,12 +272,14 @@ if __name__ == "__main__":
         file.close()
 
 
+    # FDR test needed !!!!!
+#    pair2weight = dict()
     output_filename = 'graph.txt'
     output = open(output_filename,'w')
     file = open(observation_filename,'r')
     for line in file :
         line = line.rstrip()
-        fam1,fam2,weight = line.split('\t')
+        fam1,fam2,weight,weightRaw = line.split('\t')
         pair = fam1+'\t'+fam2
         mean = np.mean(pair2distribution[pair])
         std = np.std(pair2distribution[pair])
@@ -283,6 +289,29 @@ if __name__ == "__main__":
         except :
             print(pair,weight,mean,std)
             continue
-        if pvalue > 0.9999 :
+        if pvalue > 0.95 :
+ #           pair2weight[ '_'.join(sorted([ fam1 , fam2 ]) ) ] = weight
             output.write(pair+'\t'+str(weight)+'\t'+str(mean)+'\t'+str(std)+'\t'+str(zscore)+'\t'+str(pvalue)+'\n')
+        else :
+            continue
+ #           pair2weight[ '_'.join(sorted([ fam1 , fam2 ]) ) ] = weight
     file.close()
+
+
+    # creating a matrix
+    output_filename = 'cooccurrence.txt'
+    output = open(output_filename,'w')    
+    output.write('\t'+'\t'.join(list(familySet))+'\n')
+    for fam1 in familySet :
+        output.write(fam1)
+        for fam2 in familySet :
+            pair = '\t'.join( sorted([fam1,fam2]) )
+            if pair  in pair2weight :
+                ratio = float(pair2weight[ pair  ]) / float(len(family2genomes[ fam1 ]))
+                if ratio > 1 :
+                    ratio = 1
+                output.write('\t'+str( ratio ) )
+            else :
+                output.write('\t'+'0')
+        output.write('\n')
+    output.close()

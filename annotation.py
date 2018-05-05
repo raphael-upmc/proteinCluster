@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 """ annotation class to store annotation of each protein cluster """
 
 import os,sys,re
@@ -231,17 +231,17 @@ class DatasetAnnotation:
         self.bin2taxonomy = dict()
 
     def addingTaxonomy(self) :
-        filename = "/home/meheurap/proteinCluster/taxonomy/bin2nearestTaxaGroup.txt"
+        filename = "/home/meheurap/proteinCluster/taxonomy/bin2taxonomy.txt"
         file = open(filename,"r")
         for line in file :
             line = line.rstrip()
-            genome,nearestTaxa,lineage,lineageNorm = line.split("\t")
-            taxonomy = lineageNorm.split(',')[-3]
+            genome,nearestTaxa,lineageNorm = line.split("\t")
             self.bin2taxonomy[ genome ] = lineageNorm
         file.close()
 
         
     def fillingOrf(self) :
+        sp2count = defaultdict(int)
         for seq_record in SeqIO.parse(self.fasta_filename, "fasta"):
             self.orfName2orfObjet[seq_record.id] = Orf(seq_record.id)
             self.orfName2orfObjet[seq_record.id].seq = seq_record
@@ -264,11 +264,12 @@ class DatasetAnnotation:
                 genome = m.group(1).rstrip()
                 self.orfName2orfObjet[seq_record.id].bin = genome.rstrip()
                 self.orfName2orfObjet[seq_record.id].lineage = self.bin2taxonomy[ genome.rstrip() ]
+                sp2count[ self.orfName2orfObjet[seq_record.id].lineage.split(',')[-3]  ] += 1
             except :
                 print(self.orfName2orfObjet[seq_record.id].bin+'\t'+self.orfName2orfObjet[seq_record.id].lineage)
                 continue
 
-                
+        print(sp2count)
 
             
         file = open(self.orf2family_filename,"r")
@@ -349,6 +350,27 @@ class DatasetAnnotation:
                     self.orfName2orfObjet[orfName].psort = localisation
         file.close()
 
+        psort_filename = "/home/meheurap/proteinCluster/motifs/remainingCpr.psort"
+        file = open(psort_filename,"r")
+        header = next(file)
+        for line in file :
+            line = line.rstrip()            
+            liste = line.split('\t')
+            orfName = liste[0].split()[0]
+            localisation = liste[-5]
+            finalScore = float(liste[-3])
+            cytoplasmicScore = float(liste[-9])
+            if not self.orfName2orfObjet[orfName].psort == "Na" :
+                sys.exit(orfName+" already have psort prediction!")
+            else :
+                if localisation == 'Unknown' and finalScore > 4 and cytoplasmicScore < 4 :
+                    localisation = 'Exported'
+                    self.orfName2orfObjet[orfName].psort = localisation
+                else :
+                    self.orfName2orfObjet[orfName].psort = localisation
+        file.close()
+
+        
         
     def addingPfamAnnotation(self,pfamAccession2pfamObject) :
         cpt = 0
@@ -380,8 +402,8 @@ class DatasetAnnotation:
                 continue
             name = liste[3]
             description = liste[4]
-            reliability = liste[6]
-            evalue = liste[7]
+            reliability = liste[-7]
+            evalue = liste[-6]
             try :
                 self.orfName2orfObjet[orfName].kegg = ( keggAccession2keggObject[KO] , evalue , reliability )
             except :

@@ -64,20 +64,19 @@ if __name__ == "__main__":
         pathway = liste[10].split(' (')[0]
         psort = liste[5].split(' (')[0]
 #        family2annot[family].append('module: '+module)
-        family2annot[family].append('KEGG_big: '+keggAnnotBig)
-        family2annot[family].append('psort: '+psort)
+        family2annot[family].append('Category: '+keggAnnotBig)
         family2annot[family].append('KEGG: '+keggAnnot)
-        family2annot[family].append('pathway: '+pathway)
-
-        if family not in family2enrichment :
-            family2annot[family].append( 'enrichment: '+'Unknown' )
-        else :
-            family2annot[family].append( 'enrichment: '+family2enrichment[ family ] )
+        family2annot[family].append('Pathway: '+pathway)
+        family2annot[family].append('Psort: '+psort)
+        # if family not in family2enrichment :
+        #     family2annot[family].append( 'enrichment: '+'Unknown' )
+        # else :
+        #     family2annot[family].append( 'enrichment: '+family2enrichment[ family ] )
 
         if family not in family2enrichmentOddRatio :
-            family2annot[family].append( 'enrichOddRatio: '+'Unknown' )
+            family2annot[family].append( 'Enrichment: '+'Unknown' )
         else :
-            family2annot[family].append( 'enrichOddRation: '+family2enrichmentOddRatio[ family ] )
+            family2annot[family].append( 'Enrichment: '+family2enrichmentOddRatio[ family ] )
             
             
     file.close()
@@ -123,10 +122,10 @@ if __name__ == "__main__":
         header += '\t'+family2annot[family][4]
     output.write(header+'\n')
 
-    header = '\t\t'
-    for family in familyList :
-        header += '\t'+family2annot[family][5]
-    output.write(header+'\n')
+    # header = '\t\t'
+    # for family in familyList :
+    #     header += '\t'+family2annot[family][5]
+    # output.write(header+'\n')
     
     # header = '\t\t'
     # for family in familyList :
@@ -173,6 +172,14 @@ if __name__ == "__main__":
         network_data += line
     file.close()
     print(len(network_data))
+
+    load_viz_new_filename = '/home/meheurap/script/load_viz_new.js'
+    load_viz_new = ''
+    file = open(load_viz_new_filename,'rt')
+    for line in file :
+        load_viz_new += line
+    file.close()
+
     
     html_output_filename = sys.argv[2]
     print(html_output_filename)
@@ -183,6 +190,7 @@ if __name__ == "__main__":
     for line in file :
         line = line.rstrip()
         if re.search('network_data = JSON',line) :
+            output.write('\n\n\n'+load_viz_new+'\n\n\n')
             output.write('network_data = '+network_data+'\n')
         else :
             output.write(line+'\n')

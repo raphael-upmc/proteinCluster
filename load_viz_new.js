@@ -27,6 +27,7 @@ function load_viz_new(network_data){
 	'matrix_update_callback':matrix_update_callback,
 	'sidebar_width':150,
 	'tile_colors': [ 'black','white' ],
+	'input_domain' : 0.1,
     };
 
 
