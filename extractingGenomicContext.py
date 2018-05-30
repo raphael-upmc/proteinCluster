@@ -64,11 +64,11 @@ def genome2orfOrder(feature_filename) :
 
 if __name__ == "__main__":
 #    orfList_filename = sys.argv[1]
-    orfList_filename = '/home/meheurap/Roizmanbacteria/CRISPR/orf_3.6k.fam13760.txt'
+    orfList_filename = '/home/meheurap/Roizmanbacteria/CRISPR/newCrisprOrf.txt'
 #    feature_filename = sys.argv[2]
     feature_filename = "/home/meheurap/proteinCluster/genomicContext/3600genomes.4pub.all.genomeFeature"    
 #    output_filename = sys.argv[3]
-    output_filename = "genomicContext_3.6k.fam13760.txt"    
+    output_filename = "genomicContext_newCrisprOrf.txt"    
 
 
     k=5

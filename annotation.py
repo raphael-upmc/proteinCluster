@@ -330,45 +330,31 @@ class DatasetAnnotation:
         file.close()
 
     def addingPsortAnnotation(self) :
-        psort_filename = "/home/meheurap/proteinCluster/motifs/cpr.psort"
-        file = open(psort_filename,"r")
-        header = next(file)
-        for line in file :
-            line = line.rstrip()            
-            liste = line.split('\t')
-            orfName = liste[0].split()[0]
-            localisation = liste[-5]
-            finalScore = float(liste[-3])
-            cytoplasmicScore = float(liste[-9])
-            if not self.orfName2orfObjet[orfName].psort == "Na" :
-                sys.exit(orfName+" already have psort prediction!")
-            else :
-                if localisation == 'Unknown' and finalScore > 4 and cytoplasmicScore < 4 :
-                    localisation = 'Exported'
-                    self.orfName2orfObjet[orfName].psort = localisation
+        filenameList = [ '/home/meheurap/proteinCluster/motifs/sparselyDistributedModules.psort' , '/home/meheurap/proteinCluster/motifs/cpr.psort' , '/home/meheurap/proteinCluster/motifs/remainingCpr.psort' ]
+        for psort_filename in filenameList :
+            file = open(psort_filename,"r")
+            header = next(file)
+            for line in file :
+                line = line.rstrip()            
+                liste = line.split('\t')
+                orfName = liste[0].split()[0]
+                localisation = liste[-5]
+                finalScore = float(liste[-3])
+                cytoplasmicScore = float(liste[-9])
+                if not self.orfName2orfObjet[orfName].psort == "Na" :
+                    continue
+                    if self.orfName2orfObjet[orfName].psort != localisation :
+                        print(orfName+" already have psort prediction! "+self.orfName2orfObjet[orfName].psort+' '+localisation)
+                    
+#                    sys.exit(orfName+" already have psort prediction!")
                 else :
-                    self.orfName2orfObjet[orfName].psort = localisation
-        file.close()
+                    if localisation == 'Unknown' and finalScore > 4 and cytoplasmicScore < 4 :
+                        localisation = 'Exported'
+                        self.orfName2orfObjet[orfName].psort = localisation
+                    else :
+                        self.orfName2orfObjet[orfName].psort = localisation
+            file.close()
 
-        psort_filename = "/home/meheurap/proteinCluster/motifs/remainingCpr.psort"
-        file = open(psort_filename,"r")
-        header = next(file)
-        for line in file :
-            line = line.rstrip()            
-            liste = line.split('\t')
-            orfName = liste[0].split()[0]
-            localisation = liste[-5]
-            finalScore = float(liste[-3])
-            cytoplasmicScore = float(liste[-9])
-            if not self.orfName2orfObjet[orfName].psort == "Na" :
-                sys.exit(orfName+" already have psort prediction!")
-            else :
-                if localisation == 'Unknown' and finalScore > 4 and cytoplasmicScore < 4 :
-                    localisation = 'Exported'
-                    self.orfName2orfObjet[orfName].psort = localisation
-                else :
-                    self.orfName2orfObjet[orfName].psort = localisation
-        file.close()
 
         
         
