@@ -50,6 +50,7 @@ class Orf:
         self.tmhmm = -1
         self.kegg = "Na"
         self.psort = "Na"
+        self.cazy = "Na"
         
     def __len__(self):
         return len(self.seq)
@@ -120,7 +121,7 @@ class ProteinCluster :
 
     def oneLineAnnotation(self) :
         """ sumarizing ProteinCluster annotation with one line """
-        annot2count = {"sequenceLength" : [] , "ggkbase" : defaultdict(int) , "signalP" : 0 , "TMHMM" : [] , "pfam" : defaultdict(int) , "keggBigCategory" : defaultdict(int) , "keggCategory" : defaultdict(int) , "keggPathway" : defaultdict(int) , "keggAccession" : defaultdict(int) , "keggDescription" : defaultdict(int) , "psort" : defaultdict(int), "CPR" : set() , "non-CPR-Bacteria" : set() , "non-DPANN-Archaea" : set() , "DPANN" : set() }
+        annot2count = {"sequenceLength" : [] , "ggkbase" : defaultdict(int) , "signalP" : 0 , "TMHMM" : [] , "pfam" : defaultdict(int) , "keggBigCategory" : defaultdict(int) , "keggCategory" : defaultdict(int) , "keggPathway" : defaultdict(int) , "keggAccession" : defaultdict(int) , "keggDescription" : defaultdict(int) , "psort" : defaultdict(int), "CPR" : set() , "non-CPR-Bacteria" : set() , "non-DPANN-Archaea" : set() , "DPANN" : set() , "cazy" : defaultdict(int) }
         unknown_set = set( [ "hypothetical","Uncharacterized","seg","unannotated" ] )
         for orfName,orfObject in self.orfDict.items() :            
             # sequence length
@@ -128,6 +129,9 @@ class ProteinCluster :
 
             # psort annotation
             annot2count["psort"][orfObject.psort] += 1
+
+            # Cazy annotation
+            annot2count["cazy"][orfObject.cazy] += 1
 
             
             # ggkbase annotation
@@ -185,6 +189,9 @@ class ProteinCluster :
         psort = sorted(annot2count["psort"].items(),key=itemgetter(1),reverse=True)[0]
         psort = psort[0]+" ("+str( format( float(psort[1])/float(len(self)) , '.2f' ) )+")"
 
+        cazy = sorted(annot2count["cazy"].items(),key=itemgetter(1),reverse=True)[0]
+        cazy = cazy[0]+" ("+str( format( float(cazy[1])/float(len(self)) , '.2f' ) )+")"
+
         
         pfam = sorted(annot2count["pfam"].items(),key=itemgetter(1),reverse=True)[0]
         pfam = pfam[0]+" ("+str( format( float(pfam[1])/float(len(self)) , '.2f' ) )+")"
@@ -209,7 +216,7 @@ class ProteinCluster :
         dpann = str(len(annot2count['DPANN']))
         nonDpannArchaea = str(len(annot2count['non-DPANN-Archaea']))
         
-        result = self.name+"\t"+str(int(len(self)))+"\t"+str(int(np.median(annot2count["sequenceLength"])))+"\t"+str(format( float(annot2count["signalP"])/float(len(self)) , '.2f'))+"\t"+str(int(np.median(annot2count["TMHMM"])))+"\t"+psort+"\t"+ggkbase+"\t"+pfam+"\t"+keggAccession+"\t"+keggDescription+'\t'+keggPathway+"\t"+keggCategory+"\t"+keggBigCategory+"\t"+cpr+"\t"+nonCprBacteria+"\t"+dpann+"\t"+nonDpannArchaea
+        result = self.name+"\t"+str(int(len(self)))+"\t"+str(int(np.median(annot2count["sequenceLength"])))+"\t"+str(format( float(annot2count["signalP"])/float(len(self)) , '.2f'))+"\t"+str(int(np.median(annot2count["TMHMM"])))+"\t"+psort+"\t"+ggkbase+"\t"+pfam+"\t"+keggAccession+"\t"+keggDescription+'\t'+keggPathway+"\t"+keggCategory+"\t"+keggBigCategory+"\t"+cazy+"\t"+cpr+"\t"+nonCprBacteria+"\t"+dpann+"\t"+nonDpannArchaea
         return result
     
     def writtingFasta(self,output_filename):
@@ -329,6 +336,17 @@ class DatasetAnnotation:
                 self.orfName2orfObjet[orfName].tmhmm = result 
         file.close()
 
+    def addingCazyAnnotation(self) :
+        cazy_filename = "/data7/proteinfams/dbCAN2/orf2DbCAN.txt"
+        file = open(cazy_filename,"r")
+        header = next(file)
+        for line in file :
+            line = line.rstrip()            
+            orfName,result = line.split('\t')
+            self.orfName2orfObjet[orfName].cazy = result 
+        file.close()
+
+        
     def addingPsortAnnotation(self) :
         filenameList = [ '/home/meheurap/proteinCluster/motifs/sparselyDistributedModules.psort' , '/home/meheurap/proteinCluster/motifs/cpr.psort' , '/home/meheurap/proteinCluster/motifs/remainingCpr.psort' ]
         for psort_filename in filenameList :
@@ -449,6 +467,9 @@ if __name__ == "__main__":
 
     print("adding Kegg...")
     dataset.addingKeggAnnotation(keggAccession2keggObject)
+
+    print("adding Cazy...")
+    dataset.addingCazyAnnotation()
     
     print(len(dataset.orfName2orfObjet))
     print("saving dataset object in pickle...")
@@ -456,7 +477,7 @@ if __name__ == "__main__":
 
     output_filename = "family2annotation.txt"
     output = open(output_filename,"w")
-    output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","psort","Ggkbase","Pfam",'keggAccession','keggDescription','keggPathway','keggCategory','keggBigCategory','CPR','non-CPR-Bacteria','DPANN','non-DPANN-Archaea'])+"\n")
+    output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","psort","Ggkbase","Pfam",'keggAccession','keggDescription','keggPathway','keggCategory','keggBigCategory','Cazy','CPR','non-CPR-Bacteria','DPANN','non-DPANN-Archaea'])+"\n")
     for family,familyObject in dataset.clusterName2clusterObject.items() :
         output.write(familyObject.oneLineAnnotation()+"\n")
     output.close()
