@@ -90,11 +90,11 @@ for root, dirs, files in os.walk("signalP_tmp/output"):
         for line in file :
             line = line.rstrip()
             if re.match("#",line) :
-                output.write(line+"\n")
+                continue
             else :
 
                 liste = line.split()
-                defline = cpt2defline[int(liste[0])]
+                defline = cpt2defline[str(liste[0])]
                 result = liste[9]
                 output.write(defline+"\t"+result+"\n")
         file.close()        
