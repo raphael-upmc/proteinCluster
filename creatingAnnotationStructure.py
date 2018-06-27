@@ -2,8 +2,20 @@
 
 import os,sys,re
 from collections import defaultdict
+import json
+from Bio import SeqIO
 
+class Genome :
+    """ a genome class """
 
+    def __init__(self,name) :
+        self.name = name
+        self.lineage = 'Na'
+        self.protein = 'Na'
+        self.size = 'Na'
+        self.completeness = 'Na'
+        self.contamination = 'Na'
+    
 class Pfam :
     """ a pfam class """
 
@@ -55,28 +67,36 @@ class Orf:
 class DatasetAnnotation:
     """ classe annotation qui contient toutes les annotations necessaires! """
 
-    def __init__(self,name,config_filename) :
+    def __init__(self,name) :
         """ notre constructeur """
         self.name = name
         self.genomeList = dict()
         self.orfList = dict()
         
-    def addingTaxonomy(self) :
-        filename = "/home/meheurap/proteinCluster/taxonomy/bin2taxonomy.txt"
+    def addingTaxonomy(self,filename) :
         file = open(filename,"r")
         for line in file :
             line = line.rstrip()
-            genome,nearestTaxa,lineageNorm = line.split("\t")
-            self.bin2taxonomy[ genome ] = lineageNorm
+            genome,lineage = line.split("\t")
+            self.genomeList[ genome ].lineage = lineage
         file.close()
 
-    def addingFastaFile(self) :
-        for seq_record in SeqIO.parse(self.fasta_filename, "fasta"):
-            self.orfName2orfObjet[seq_record.id] = Orf(seq_record.id)
-            self.orfName2orfObjet[seq_record.id].seq = seq_record
-        
-    def addingSignalP(self,signalP_filename) :
-        file = open(signalP_filename,'r')
+    def addingFastaFile(self,filename) :
+        for seq_record in SeqIO.parse(filename, "fasta"):
+            self.orfList[seq_record.id] = Orf(seq_record.id)
+            self.orfList[seq_record.id].seq = seq_record
+
+    def addingGenome(self,filename) :
+        file = open(filename,'r')
+        for line in file :
+            line = line.rstrip()
+            orf,genome = line.split('\t')
+            self.orfList[orf].genome = genome
+            self.genomeList[genome] = Genome(genome)
+        file.close()
+    
+    def addingSignalP(self,filename) :
+        file = open(filename,'r')
         for line in file :
             line = line.rstrip()
 
@@ -85,18 +105,17 @@ class DatasetAnnotation:
 
             orfName,result = line.split('\t')
 
-            if self.orfName2orfObjet[orfName].signalp != None :
+            if self.orfList[orfName].signalp != None :
                 sys.exit(orfName+" already have signalP prediction!")
             if result == "Y" :
-                self.orfName2orfObjet[orfName].signalp = True
+                self.orfList[orfName].signalp = True
             else :
-                self.orfName2orfObjet[orfName].signalp = False
+                self.orfList[orfName].signalp = False
         file.close()
 
                 
-    def addingTMHMM(self) :
-        tmhmm_filename = "/data7/proteinfams/TMHMM/3600genomes.4pub.faa.tmhmm"
-        file = open(tmhmm_filename,"r")
+    def addingTMHMM(self,filename) :
+        file = open(filename,"r")
         header = next(file)
         for line in file :
             line = line.rstrip()            
@@ -109,23 +128,23 @@ class DatasetAnnotation:
                 self.orfName2orfObjet[orfName].tmhmm = result 
         file.close()
 
-    def addingPFAM(self,pfamAccession2pfamObject) :
+    
+    def addingPFAM(self,filename) :
 
-        print("reading Pfam info...")
+        print("\treading Pfam info...")
         pfamAccession2pfamObject = dict()
-        filename = "/data7/proteinfams/PFAM/Pfam-A.clans.tsv"
-        file = open(filename,"r")
+        info_filename = "/data7/proteinfams/PFAM/Pfam-A.clans.tsv"
+        file = open(info_filename,"r")
         for line in file :
             line = line.rstrip()
             accession,clanAccession,clanName,name,description = line.split("\t")
             pfamAccession2pfamObject[accession] = Pfam(accession,name,clanAccession,clanName,description)
         file.close()
 
-
+        print("\treading Pfam filename...")
         cpt = 0
         orf2architecture = defaultdict(list)
-        pfam_filename = "/data7/proteinfams/PFAM/3600genomes.4pub.faa.domtblout.domainsHit.dama.removingOverlapping"
-        file = open(pfam_filename,"r")
+        file = open(filename,"r")
         for line in file :
             line = line.rstrip()
             liste = line.split()
@@ -134,7 +153,7 @@ class DatasetAnnotation:
             start = liste[2]
             end = liste[3]
             cEvalue = liste[4] # conditional Evalue
-            self.orfName2orfObjet[orfName].pfam.append( ( int(start) , int(end) , pfamAccession2pfamObject[pfamAccession] , cEvalue ) )
+            self.orfList[orfName].pfam.append( ( int(start) , int(end) , pfamAccession2pfamObject[pfamAccession] , cEvalue ) )
         file.close()
         
 
@@ -142,32 +161,50 @@ class DatasetAnnotation:
 
 if __name__ == "__main__":
 
-    pfam_filename = '/data7/proteinfams/Elusimicrobia/annotation/PFAM/elusimicrobia.faa.domtblout.domainHit.dama.removingOverlapping'
 
-    signalp_filename = '/data7/proteinfams/Elusimicrobia/annotation/SignalP/elusimicrobia.faa.signalP'
+    config_filename = '/home/meheurap/script/creatingAnnotationStructure.json'
+    name = 'Elusimicrobia'
+    
+    if not os.path.exists(config_filename) :
+        sys.exit(config_filename+' does not exist, exit')
+    else:
+        config_filename = os.path.abspath(config_filename)
+        
+    with open(config_filename) as f:
+        data = json.load(f)
 
-    fasta_filename = '/data7/proteinfams/Elusimicrobia/proteinClustering/elusimicrobia.faa'
-    sequence2genone_filename = '/data7/proteinfams/Elusimicrobia/proteinClustering/elusimicrobia.txt'
-    genome2taxonomy_filename = ''
 
-
-
-
-    dataset = DatasetAnnotation('Elusimicrobia')
+    dataset = DatasetAnnotation(name)
     print(dataset)
     print(dataset.name)
 
-    # print("adding Taxonomy...")
-    # dataset.addingTaxonomy()
-    
-    print("reading fasta file...")
-    dataset.addingFastaFile()
 
-    print("adding signalP...")
-    dataset.addingSignalpAnnotation()
+    # reading config_filename     
+    if 'fasta_filename' in data and os.path.exists(data['fasta_filename']) :
+        print("reading fasta file...")
+        dataset.addingFastaFile(data['fasta_filename'])
+    else :
+        sys.exit('error no fasta_filename in '+config_filename)
 
-    print("adding Pfam...")
-    dataset.addingPfamAnnotation(pfamAccession2pfamObject)
+    # if sequence2genome_filename available 
+    if 'sequence2genome_filename' in data and os.path.exists( data['sequence2genome_filename'] ) :
+        print("adding Genome...")
+        dataset.addingGenome(data['sequence2genome_filename'])
+
+    # if genome2taxonomy_filename available 
+    if 'genome2taxonomy_filename' in data and os.path.exists( data['genome2taxonomy_filename'] ) :
+        print("adding Taxonomy...")
+        dataset.addingTaxonomy(data['genome2taxonomy_filename'])
+
+    # if signalP_filename available
+    if 'signalp_filename' in data and os.path.exists( data['signalp_filename'] ) :
+        print("adding signalP...")
+        dataset.addingSignalP(data['signalp_filename'])
+
+    # if pfam_filename available
+    if 'pfam_filename' in data and os.path.exists( data['pfam_filename'] ) :
+        print("adding Pfam...")
+        dataset.addingPFAM(data['pfam_filename'])
     
     
     # print(len(dataset.orfName2orfObjet))
