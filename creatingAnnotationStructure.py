@@ -8,6 +8,7 @@ import pickle
 import numpy as np
 from datetime import date, time, datetime
 from operator import itemgetter
+import argparse
 
 class Family :
     def __init__(self,name) :
@@ -248,7 +249,80 @@ class DatasetAnnotation:
                 self.orfList[orfName].tmhmm = result 
         file.close()
 
-    
+    def addingCAZY(self,filename) :
+        file = open(filename,"r")
+        header = next(file)
+        for line in file :
+            line = line.rstrip()            
+            orfName,cazy = line.split('\t')
+            self.orfList[orfName].cazy = cazy
+        file.close()
+
+
+    def addingKEGG(self,filename):
+        ko2kegg = dict()        
+        json_filename = '/data7/proteinfams/3.6k.PF/annotation/keggHMM/ko00000.json'
+
+        with open(json_filename) as f:
+            data = json.load(f)
+
+        for kegg in data['children'] :
+            keggBigCategory = kegg['name']
+            for kegg1 in kegg['children'] :
+                keggCategory = kegg1['name']
+                for kegg2 in kegg1['children'] :
+                    keggPathway = kegg2['name']
+                    if 'children' in kegg2 :            
+                        for kegg3 in kegg2['children'] :
+                            ko = kegg3['name'].split()[0]
+                            name = kegg3['name'].split('  ')[1].split(';')[0]
+                            description = kegg3['name'].split('  ')[1].split(';')[1].strip()
+                            if ko not in ko2kegg :
+                                ko2kegg[ko] = Kegg(ko,name,description,keggBigCategory,keggCategory,keggPathway)
+                            else:
+                                if ko2kegg[ko].accession != ko :
+                                    ko2kegg[ko].accession = 'Multiple'
+
+                                if ko2kegg[ko].name != name :
+                                    ko2kegg[ko].name = 'Multiple'
+
+                                if ko2kegg[ko].description != description :
+                                    ko2kegg[ko].description = 'Multiple'
+
+                                if ko2kegg[ko].bigCategory != keggBigCategory :
+                                    ko2kegg[ko].bigCategory = 'Multiple'
+                            
+                                if ko2kegg[ko].category != keggCategory :
+                                    ko2kegg[ko].category = 'Multiple'
+
+                                if ko2kegg[ko].pathway != keggPathway :
+                                    ko2kegg[ko].pathway = 'Multiple'
+
+                        
+                    else:
+                        continue
+
+
+        koSet = set()
+        file = open(filename,'r')
+        header = next(file)
+        for line in file :
+            line = line.rstrip()
+            liste = line.split('\t')
+            orfName = liste[2]
+            KO = liste[4]
+            if KO == '-' :
+                continue
+            reliability = liste[10]
+            evalue = liste[11]
+            try :
+                self.orfList[orfName].kegg = ( ko2kegg[KO] , evalue , reliability )
+            except :
+                koSet.add(KO)
+        file.close()
+        print(koSet)
+
+        
     def addingPFAM(self,filename) :
 
         print("\treading Pfam info...")
@@ -277,24 +351,71 @@ class DatasetAnnotation:
         file.close()
         
 
+    def addingPsort(self,filename) :
+        file = open(filename,"r")
+        header = next(file)
+        for line in file :
+            line = line.rstrip()            
+            liste = line.split('\t')
+            orfName = liste[0].split()[0]
+            localisation = liste[-5]
+            finalScore = float(liste[-3])
+            cytoplasmicScore = float(liste[-9])
+            if not self.orfList[orfName].psort == "Na" :
+                print(orfName+" already have psort prediction! "+self.orfList[orfName].psort+' '+localisation)
+
+            if self.orfList[orfName].psort != "Na" and self.orfList[orfName].psort != localisation :
+                print(orfName+" already have psort prediction and it's different! "+self.orfList[orfName].psort+' '+localisation)
+                    
+#                    sys.exit(orfName+" already have psort prediction!")
+            else :
+                if localisation == 'Unknown' and finalScore > 4 and cytoplasmicScore < 4 :
+                    localisation = 'Exported'
+                    self.orfList[orfName].psort = localisation
+                else :
+                    self.orfList[orfName].psort = localisation
+        file.close()
+
+        
 
 
 if __name__ == "__main__":
-
-
-    config_filename = '/home/meheurap/script/creatingAnnotationStructure.json'
-    name = 'Elusimicrobia'
+    parser = argparse.ArgumentParser(description='Run all-vs-all hhblits on the subfamilies')
+    parser.add_argument('config_filename', help='the path of the CONFIG_FILENAME that contains the paths of the annotation files')
+    parser.add_argument('pickle_filename', help='the pickle filename where the results will be store')
+    parser.add_argument('--name',default='Unknow',help='the name of the dataset (default: Unknown)')
+    parser.add_argument('--family2annotation_filename',help='the output filename where the family2annotation will be store (default: ./FASTA_FILENAME_proteinClutering)')
     
-    if not os.path.exists(config_filename) :
-        sys.exit(config_filename+' does not exist, exit')
+    args = parser.parse_args()
+
+    
+    if not os.path.exists(args.config_filename) :
+        sys.exit(args.config_filename+' does not exist, exit')
     else:
-        config_filename = os.path.abspath(config_filename)
+        config_filename = os.path.abspath(args.config_filename)
+
+    if os.path.exists(args.pickle_filename) :
+        sys.exit(args.pickle_filename+' already exists, remove it first')
+    else:
+        pickle_filename = os.path.abspath(args.pickle_filename)
+
+
+    if args.family2annotation_filename != None :
+        if os.path.exists(args.family2annotation_filename) :
+            sys.exit(args.family2annotation_filename+' already exists, remove it first, exit')
+        else:
+            family2annotation_filename = os.path.abspath(args.family2annotation_filename)
+
+
         
     with open(config_filename) as f:
         data = json.load(f)
+    dataset = DatasetAnnotation(args.name)
+
+    
 
 
-    dataset = DatasetAnnotation(name)
+
     print(dataset)
     print(dataset.name)
 
@@ -341,17 +462,32 @@ if __name__ == "__main__":
         print("adding TMHMM...")
         dataset.addingTMHMM(data['tmhmm_filename'])
 
-    
-    # print(len(dataset.orfName2orfObjet))
-    # print("saving dataset object in pickle...")
-    # pickle.dump( dataset, open( "annotation.p","wb" ) ) # Save a dictionary into a pickle file.
-    
+    # if cazy_filename available
+    if 'cazy_filename' in data and os.path.exists( data['cazy_filename'] ) :
+        print("adding CAZY...")
+        dataset.addingCAZY(data['cazy_filename'])
+
+    # if kegg_filename available
+    if 'kegg_filename' in data and os.path.exists( data['kegg_filename'] ) :
+        print("adding KEGG...")
+        dataset.addingKEGG(data['kegg_filename'])
 
 
-    output_filename = "family2annotation_test.txt"
-    output = open(output_filename,"w")
-    output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","psort","Pfam",'keggAccession','keggDescription','keggPathway','keggCategory','keggBigCategory','Cazy'])+"\n")
-    for family,familyObject in dataset.familyList.items() :
-        output.write(familyObject.oneLineAnnotation()+"\n")
-    output.close()
+    # if psort_filename available
+    if 'psort_filename' in data and os.path.exists( data['psort_filename'] ) :
+        print("adding Psort...")
+        dataset.addingPsort(data['psort_filename'])
+        
     
+
+    print("saving dataset object in pickle file"+pickle_filename+"...")
+    pickle.dump( dataset, open(pickle_filename,"wb" ) ) # Save a dictionary into a pickle file.
+    
+
+    if args.family2annotation_filename != None :
+        print('creating '+family2annotation_filename+'...')
+        output = open(family2annotation_filename,"w")
+        output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","psort","Pfam",'keggAccession','keggDescription','keggPathway','keggCategory','keggBigCategory','Cazy'])+"\n")
+        for family,familyObject in dataset.familyList.items() :
+            output.write(familyObject.oneLineAnnotation()+"\n")
+        output.close()
