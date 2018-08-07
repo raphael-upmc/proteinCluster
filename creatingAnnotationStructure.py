@@ -100,7 +100,7 @@ class Genome :
     def __init__(self,name) :
         self.name = name
         self.lineage = 'Na'
-        self.protein = 'Na'
+        self.protein = 0
         self.size = 'Na'
         self.completeness = 'Na'
         self.contamination = 'Na'
@@ -183,7 +183,9 @@ class DatasetAnnotation:
             line = line.rstrip()
             orf,genome = line.split('\t')
             self.orfList[orf].genome = genome
-            self.genomeList[genome] = Genome(genome)
+            if genome not in self.genomeList :
+                self.genomeList[genome] = Genome(genome)
+            self.genomeList[genome].protein += 1
         file.close()
 
     def addingFamily(self,filename) :

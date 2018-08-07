@@ -63,17 +63,16 @@ def genome2orfOrder(feature_filename) :
 
 
 if __name__ == "__main__":
-#    orfList_filename = sys.argv[1]
-    orfList_filename = '/home/meheurap/Roizmanbacteria/CRISPR/newCrisprOrf.txt'
-#    feature_filename = sys.argv[2]
-    feature_filename = "/home/meheurap/proteinCluster/genomicContext/3600genomes.4pub.all.genomeFeature"    
-#    output_filename = sys.argv[3]
-    output_filename = "genomicContext_newCrisprOrf.txt"    
+    orfList_filename = sys.argv[1]
+    feature_filename = sys.argv[2]
+    output_filename = sys.argv[3]
 
+    if len(sys.argv) == 4 :
+        k=20
+    else:
+        k = int(sys.argv[4])
 
-    k=5
-
-
+    print(k)
     orfSet = set()
     file = open(orfList_filename,'r')
     for line in file :
@@ -97,7 +96,7 @@ if __name__ == "__main__":
     output = open(output_filename,'w')
     output.write('centroid'+'\t'+'genome'+'\t'+'scaffold'+'\t'+'start'+'\t'+'end'+'\t'+'strand'+'\t'+'orfname'+'\n')
     for orf in orfSet :
-        print(orf)
+#        print(orf)
         genome = orf2genome[orf]
         scaffold = orf2scaffold[orf]
         for elt in orf2genomicContext[orf] :
