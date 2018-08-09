@@ -70,7 +70,8 @@ def gi2taxIdFunction() :
         gi2taxId[gi] = taxId
     file.close()
     print('done ('+str(len(gi2taxId))+' GIs)')
-    
+    return gi2taxId
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='from a list of gi accessions, retrieve the taxonomy of the organism')
@@ -82,7 +83,7 @@ if __name__ == "__main__":
     if os.path.exists(args.gi_filename) :
         gi_filename = os.path.abspath(args.gi_filename)
     else:
-        sys.exit(args.fasta_filename+' does not exist, exit')
+        sys.exit(args.gi_filename+' does not exist, exit')
 
     
     print('reading you gi file...')
@@ -101,6 +102,7 @@ if __name__ == "__main__":
 
     gi2taxId = gi2taxIdFunction()
 
+    print('writting the results in '+args.output_filename)
     output = open(args.output_filename,'w')
     output.write('gi'+'\t'+'taxId'+'\t'+'ncbi_lineage'+'\n')
     for gi in giSet :
@@ -110,7 +112,9 @@ if __name__ == "__main__":
         else:
             output.write(gi+'\t'+'Na'+'\t'+'Na'+'\n')
     output.close()
+    print('done')
     
+    sys.exit()
     # gi = '1084748677'
     
     # taxId = gi2taxId[gi]
