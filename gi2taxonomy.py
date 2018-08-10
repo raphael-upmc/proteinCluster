@@ -48,13 +48,17 @@ def gettingRank(taxId,rank,taxId2taxRank,taxId2parent) :
 
 def gettingFullLineage(taxId,taxId2taxName,taxId2parent) :
     lineage = list()
-    while taxId != '1' :
-        lineage.append(taxId2taxName[ taxId ])
-        taxId = taxId2parent[taxId]
+    try :
+        while taxId != '1' :        
+            lineage.append(taxId2taxName[ taxId ])
+            taxId = taxId2parent[taxId]
 
         
-    return ','.join(list(reversed(lineage)))
-
+        return ','.join(list(reversed(lineage)))
+    except:
+        print('error with'+taxId)
+        return 'Na'
+    
 def gi2taxIdFunction() :
     gi2taxId = dict()
     gi2taxId_filename = '/home/meheurap/NCBI/taxdump/gi_taxid_prot.dmp'
@@ -94,6 +98,7 @@ if __name__ == "__main__":
         giSet.add(gi)
     file.close()
     print('done ('+str(len(giSet))+' non-redundant GIs)')
+#    print(giSet)
     
     print('loading taxDump database...')
     taxId2taxName,taxName2taxId = functionTaxId2taxonName()
@@ -107,6 +112,7 @@ if __name__ == "__main__":
     output.write('gi'+'\t'+'taxId'+'\t'+'ncbi_lineage'+'\n')
     for gi in giSet :
         if gi in gi2taxId :
+            taxId = gi2taxId[gi]
             lineage = gettingFullLineage(taxId,taxId2taxName,taxId2parent)
             output.write(gi+'\t'+taxId+'\t'+lineage+'\n')
         else:
