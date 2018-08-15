@@ -3,7 +3,7 @@
 
 import os,sys,re
 from collections import defaultdict
-
+import argparse
 
 def kNearestNeighbors(orfName,geneList,k) :
     genomicContextList = list()
@@ -63,15 +63,30 @@ def genome2orfOrder(feature_filename) :
 
 
 if __name__ == "__main__":
-    orfList_filename = sys.argv[1]
-    feature_filename = sys.argv[2]
-    output_filename = sys.argv[3]
 
-    if len(sys.argv) == 4 :
-        k=20
+    parser = argparse.ArgumentParser(description='extracting the k up and down neighboor orfs from a list of orfs')
+    parser.add_argument('orfList_filename', help='the path of the ORFLIST_FILE, this file contains the list of ORFs you want to extract the neighborood (one ORF per line)')
+    parser.add_argument('feature_filename',help='the path of the FEATURE_FILE, this file is a gff-like file, it contains the locations of the ORFs for every scaffolds')
+    parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
+    parser.add_argument('-k',type=int,default=5,help='the number of neighboors up and down you want to extract (default: 5)')
+
+    args = parser.parse_args()
+    
+    if os.path.exists(args.orfList_filename) :
+        fasta_filename = os.path.abspath(args.orfList_filename)
     else:
-        k = int(sys.argv[4])
+        sys.exit(args.orfList_filename+' does not exist, exit')
 
+    if os.path.exists(args.feature_filename) :
+        feature_filename = os.path.abspath(args.feature_filename)
+    else:
+        sys.exit(args.feature_filename+' does not exist, exit')
+        
+    
+
+    output_filename = os.path.abspath(args.output_filename)
+
+    k = args.k
     print(k)
     orfSet = set()
     file = open(orfList_filename,'r')
