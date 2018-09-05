@@ -73,7 +73,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if os.path.exists(args.orfList_filename) :
-        fasta_filename = os.path.abspath(args.orfList_filename)
+        orfList_filename = os.path.abspath(args.orfList_filename)
     else:
         sys.exit(args.orfList_filename+' does not exist, exit')
 
