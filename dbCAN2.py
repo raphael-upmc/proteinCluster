@@ -123,9 +123,10 @@ if __name__ == "__main__":
 
 
     cpu = args.cpu
-    cwd = os.getcwd()
-    cazy_output_filename = os.path.abspath(args.output_filename)
 
+    cazy_output_filename = os.path.abspath(args.output_filename)
+    cwd = '/'.join(cazy_output_filename.split('/')[:-1])
+    
     print('protein_filename: '+protein_filename)
     print('orf2bin_filename: '+orf2bin_filename)
     print('output_filename: '+cazy_output_filename)
@@ -167,8 +168,6 @@ if __name__ == "__main__":
         status = os.system(cmd)
         print('done with status: '+str(status))
 
-        if cpt == 3 :
-            break
         
     ##########################
     # parsing dbCan2 results #
