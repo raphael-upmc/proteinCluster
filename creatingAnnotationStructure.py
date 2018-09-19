@@ -179,9 +179,13 @@ class DatasetAnnotation:
 
     def addingGenome(self,filename) :
         file = open(filename,'r')
+        next(file)
         for line in file :
             line = line.rstrip()
             orf,genome = line.split('\t')
+            if orf not in self.orfList :
+                continue
+            
             self.orfList[orf].genome = genome
             if genome not in self.genomeList :
                 self.genomeList[genome] = Genome(genome)
