@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
 
     cpu = args.cpu
-    output_filename = directory+'/'+args.output_filename
+    output_filename = os.path.abspath( args.output_filename )
 
     if os.path.exists(output_filename) :
         sys.exit(output_filename+' already exists, remove it first')
