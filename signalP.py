@@ -9,7 +9,7 @@ from Bio.SeqRecord import SeqRecord
 import multiprocessing as mp
 
 def runSignalP(fasta_filename,output_filename,log_filename) :
-    cmd = "/data7/proteinfams/SignalP/signalp-4.1/signalp -f short -t gram- "+fasta_filename+" > "+output_filename+" 2>>"+log_filename
+    cmd = "/data7/proteinfams/SignalP/signalp-4.1/signalp -f short -t gram+ "+fasta_filename+" > "+output_filename+" 2>>"+log_filename
     print(cmd)
     status = os.system(cmd)
     return status

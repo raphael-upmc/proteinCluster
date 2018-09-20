@@ -481,3 +481,4 @@ if __name__ == "__main__":
     for family,familyObject in dataset.clusterName2clusterObject.items() :
         output.write(familyObject.oneLineAnnotation()+"\n")
     output.close()
+    sys.exit('finished')
