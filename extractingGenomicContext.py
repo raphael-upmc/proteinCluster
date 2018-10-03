@@ -103,6 +103,9 @@ if __name__ == "__main__":
     orf2genomicContext = dict()
     for orf in orfSet :
 #        print(orf)
+        if orf not in orf2genome :
+            print(orf+' is missing in '+feature_filename)
+            continue
         genome = orf2genome[orf]
         scaffold = orf2scaffold[orf]
         orf2genomicContext[orf] = kNearestNeighbors(orf,genome2scaffold2orfList[genome][scaffold],k)        
@@ -112,6 +115,8 @@ if __name__ == "__main__":
     output.write('centroid'+'\t'+'genome'+'\t'+'scaffold'+'\t'+'start'+'\t'+'end'+'\t'+'strand'+'\t'+'orfname'+'\n')
     for orf in orfSet :
 #        print(orf)
+        if orf not in orf2genome :
+            continue
         genome = orf2genome[orf]
         scaffold = orf2scaffold[orf]
         for elt in orf2genomicContext[orf] :
