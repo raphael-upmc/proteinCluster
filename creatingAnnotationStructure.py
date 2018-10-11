@@ -315,12 +315,27 @@ class DatasetAnnotation:
         for line in file :
             line = line.rstrip()
             liste = line.split('\t')
-            orfName = liste[2]
-            KO = liste[4]
+            orfName = liste[0]
+            KO = liste[1]
             if KO == '-' :
                 continue
-            reliability = liste[10]
-            evalue = liste[11]
+            evalue = liste[4]
+
+            hmmCover = float(liste[7])
+            orfCover = float(liste[6])
+
+            if orfCover > 0.7 :
+                if hmmCover > 0.7 :
+                    reliability = 'complete'
+                else:
+                    reliability = 'truncatedOrf??'
+            else:
+                if hmmCover > 0.7 :
+                    reliability = 'fusion??'
+                else:
+                    reliability = 'not_reliable'
+                
+                    
             try :
                 self.orfList[orfName].kegg = ( ko2kegg[KO] , evalue , reliability )
             except :
