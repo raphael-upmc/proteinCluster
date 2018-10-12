@@ -316,9 +316,7 @@ class DatasetAnnotation:
             line = line.rstrip()
             liste = line.split('\t')
             orfName = liste[0]
-            KO = liste[1]
-            if KO == '-' :
-                continue
+            KO = liste[1].split('.')[0]
             evalue = liste[4]
 
             hmmCover = float(liste[7])
