@@ -12,7 +12,7 @@ def bestHit(accessionList,hmm2nc) :
     maxi = maxi_hit = 0
     range2score = dict()
     for i in range( len(accessionList) ) :
-        hit = sorted(accessionList,key=lambda x:x[2],reverse=True)[i]
+        hit = accessionList[i]
         queryCover = hit[3]
         hmmCover = hit[4]
         bitscore = hit[2]
