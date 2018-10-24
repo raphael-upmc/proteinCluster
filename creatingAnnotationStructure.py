@@ -166,6 +166,7 @@ class DatasetAnnotation:
         
     def addingTaxonomy(self,filename) :
         file = open(filename,"r")
+        header = next(file)
         for line in file :
             line = line.rstrip()
             genome,lineage = line.split("\t")
@@ -261,7 +262,10 @@ class DatasetAnnotation:
         for line in file :
             line = line.rstrip()            
             orfName,cazy = line.split('\t')
-            self.orfList[orfName].cazy = cazy
+            if orfName not in self.orfList :
+                print(orfName+' absent from the fasta file')
+            else:
+                self.orfList[orfName].cazy = cazy
         file.close()
 
 

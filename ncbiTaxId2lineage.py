@@ -104,7 +104,7 @@ if __name__ == "__main__":
         taxId = line.rstrip()
         lineage = gettingFullLineage(taxId,taxId2taxName,taxId2parent)
         output.write(taxId+'\t'+lineage+'\n')
-    filec.close()
+    file.close()
     output.close()
     print('done')
     

@@ -14,7 +14,7 @@ def runPsort(filename,directory,option) :
     fasta_filename = directory+'/'+'psort_tmp/fasta'+'/'+filename
     psortb_filename = directory+'/'+'psort_tmp/output'+'/'+filename.replace('.faa','.psortb')
     log_filename = directory+'/'+'psort_tmp/log'+'/'+filename.replace('.faa','.log')
-    cmd = '/usr/local/psortb/bin/psort --output long '+option+' '+fasta_filename+' >'+psortb_filename+' 2>'+log_filename        
+    cmd = '/usr/bin/psort --output long '+option+' '+fasta_filename+' >'+psortb_filename+' 2>'+log_filename        
     print(cmd)
     os.system(cmd)
     return 'done'
@@ -145,5 +145,5 @@ if __name__ == "__main__":
     # removing tmp directory #
     ##########################
     
-    print('removing tmp directory '+directory+'/'+'psort_tmp')
-    shutil.rmtree(directory+'/'+'psort_tmp')
+#    print('removing tmp directory '+directory+'/'+'psort_tmp')
+#    shutil.rmtree(directory+'/'+'psort_tmp')
