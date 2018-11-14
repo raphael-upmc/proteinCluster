@@ -4,13 +4,13 @@ import os,sys,re
 from collections import defaultdict
 import shutil
 import argparse
+import multiprocessing as mp
 
 def runPRISM(fasta_filename,output_directory,log_filename) :
-    cmd = 'java -jar /home/meheurap/programs/prism-releases-master/prism.jar -a -p -f '+fasta_filename+' -tt -sug -res -rib -w 10000 -r /home/meheurap/programs/prism-releases-master/prism/WebContent/ -o '+output_directory+' -web >'+log_filename
+    cmd = 'java -jar /home/meheurap/programs/prism-releases-master/prism.jar -a -p -f '+fasta_filename+' -tt -sug -rib -w 10000 -r /home/meheurap/programs/prism-releases-master/prism/WebContent/ -o '+output_directory+' -web >'+log_filename+' 2>'+log_filename+'.error'
     print(cmd)
     status = os.system(cmd)
-
-    return status
+    return output_directory,status
 
 if __name__ == "__main__":    
     parser = argparse.ArgumentParser(description='this script parallelize the psort softare')
@@ -56,7 +56,7 @@ if __name__ == "__main__":
             filenameList.add( os.path.abspath(fasta_filename) )
     file.close()
     
-    sys.exit()
+
 
     #################
     # running PRISM #
@@ -65,8 +65,9 @@ if __name__ == "__main__":
     results = list()
     pool = mp.Pool(processes=cpu,maxtasksperchild=1) # start 20 worker processes and 1 maxtasksperchild in order to release memory
     for fasta_filename in filenameList :
-        output_directory = directory+'/'+'results'+'/'+fasta_filename
-        log_filename = directory+'/'+'logs'+'/'+fasta_filename+'.log'
+        basename = os.path.basename(fasta_filename)
+        output_directory = directory+'/'+'results'+'/'+basename
+        log_filename = directory+'/'+'logs'+'/'+basename+'.log'
         
         if os.path.exists(output_directory+'/'+'geneclusters.txt') :
             print(output_directory+' already exists, skipped this genome')
@@ -76,11 +77,9 @@ if __name__ == "__main__":
                 shutil.rmtree(output_directory)
             os.mkdir(output_directory) # need to create the output directory before running the cmd line ??
             results.append( pool.apply_async( runPRISM, args= (fasta_filename,output_directory,log_filename,) ))
-            break
     pool.close() # Prevents any more tasks from being submitted to the pool
     pool.join() # Wait for the worker processes to exit
 
-    print(results)
-
-
-        
+    for result in results :
+        print(results)
+    sys.exit()
