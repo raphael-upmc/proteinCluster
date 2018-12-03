@@ -6,14 +6,14 @@ import shutil
 import argparse
 import multiprocessing as mp
 
-def runPRISM(fasta_filename,output_directory,log_filename) :
-    cmd = 'java -jar /home/meheurap/programs/prism-releases-master/prism.jar -a -p -f '+fasta_filename+' -tt -sug -rib -w 10000 -r /home/meheurap/programs/prism-releases-master/prism/WebContent/ -o '+output_directory+' -web >'+log_filename+' 2>'+log_filename+'.error'
+def runAntismash4(fasta_filename,output_directory,log_filename) :
+    cmd = '/home/alexcc/antismash4/antismash-4.0.2/run_antismash.py --genefinding prodigal -c 1 '+fasta_filename+' --outputfolder '+output_directory+' >'+log_filename+' 2>'+log_filename+'.error'
     print(cmd)
     status = os.system(cmd)
     return output_directory,status
 
 if __name__ == "__main__":    
-    parser = argparse.ArgumentParser(description='this script parallelize the psort softare')
+    parser = argparse.ArgumentParser(description='this script parallelize the Antismash4 softare')
     parser.add_argument('fastaList_filename', help='the path of the FASTALIST_FILENAME which contains the list of genomes paths to analyzed')
     parser.add_argument('output', help='the path of the OUTPUT directory')
     parser.add_argument('--cpu',type=int,default=1,help='number of CPUs (default: 6)')
@@ -69,17 +69,17 @@ if __name__ == "__main__":
         output_directory = directory+'/'+'results'+'/'+basename
         log_filename = directory+'/'+'logs'+'/'+basename+'.log'
         
-        if os.path.exists(output_directory+'/'+basename+'.json') :
+        if os.path.exists(output_directory+'/'+'geneclusters.txt') :
             print(output_directory+' already exists, skipped this genome')
             continue
         else :
             if os.path.exists(output_directory) :
                 shutil.rmtree(output_directory)
             os.mkdir(output_directory) # need to create the output directory before running the cmd line ??
-            results.append( pool.apply_async( runPRISM, args= (fasta_filename,output_directory,log_filename,) ))
+            results.append( pool.apply_async( runAntismash4, args= (fasta_filename,output_directory,log_filename,) ))
     pool.close() # Prevents any more tasks from being submitted to the pool
     pool.join() # Wait for the worker processes to exit
 
     for result in results :
-        print(results)
+        print(result)
     sys.exit()
