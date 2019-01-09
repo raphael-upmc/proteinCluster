@@ -56,7 +56,7 @@ def gettingFullLineage(taxId,taxId2taxName,taxId2parent) :
         
         return ','.join(list(reversed(lineage)))
     except:
-        print('error with'+taxId)
+        print('error with '+taxId)
         return 'Na'
     
 def gi2taxIdFunction() :
