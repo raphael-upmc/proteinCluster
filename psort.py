@@ -3,7 +3,7 @@
 import os,sys,re
 from collections import defaultdict
 from Bio import SeqIO
-import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor,wait
 import argparse
 import shutil
 
@@ -16,8 +16,8 @@ def runPsort(filename,directory,option) :
     log_filename = directory+'/'+'psort_tmp/log'+'/'+filename.replace('.faa','.log')
     cmd = '/usr/bin/psort --output long '+option+' '+fasta_filename+' >'+psortb_filename+' 2>'+log_filename        
     print(cmd)
-    os.system(cmd)
-    return 'done'
+    status=os.system(cmd)
+    return status
 
 
 
@@ -126,15 +126,18 @@ if __name__ == "__main__":
     #################
 
     results = list()
-    pool = mp.Pool(processes=cpu,maxtasksperchild=1) # start 20 worker processes and 1 maxtasksperchild in order to release memory
+    pool = ProcessPoolExecutor(cpu) # start 20 worker processes and 1 maxtasksperchild in order to release memory
     for root, dirs, files in os.walk(directory+'/'+'psort_tmp/fasta'):
         for filename in files :
-            results.append( pool.apply_async( runPsort, args= (filename,directory,option,) ))
-    pool.close() # Prevents any more tasks from being submitted to the pool
-    pool.join() # Wait for the worker processes to exit
+            future = pool.submit( runPsort,filename,directory,option )
+            results.append( future )
+    wait(results) # Prevents any more tasks from being submitted to the pool
 
+    for elt in results :
+        print( elt.result() )
+
+    pool.shutdown()
     
-
     ####################
     # writting results #
     ####################

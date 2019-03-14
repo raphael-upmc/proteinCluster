@@ -4,6 +4,7 @@
 import os,sys,re
 from collections import defaultdict
 from Bio import SeqIO
+import argparse
 
 
 if __name__ == "__main__":
