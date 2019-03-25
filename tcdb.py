@@ -64,18 +64,34 @@ if __name__ == "__main__":
     
     tcdb_db_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb'
     tcdb_fasta_filename = '/data9/genasci/genasci_metabolism/analysis_after_filtering_drep/hmm/tcdb/tcdb.faa'
-    query_fasta_filename = '/data7/proteinfams/3.6k.PF/mmseqsProteinClustering/3600genomes.4pub.cleaned.faa'
-    blastp_filename = 'tcdb.blastout'
     tcdb_annot_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.dr'
+    
+    output_filename = 'tcdb.annot'
+    blastp_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.blastout'    
+    query_fasta_filename = '/data7/proteinfams/3.6k.PF/mmseqsProteinClustering/3600genomes.4pub.cleaned.faa'
 
+    if not os.path.exists(tcdb_db_filename+'.pin') :
+        cmd = 'makeblastdb -in '+tcdb_fasta_filename+' -dbtype prot -out '+tcdb_db_filename
+        print(cmd)
+        status = os.system(cmd)
+    else:
+        print(tcdb_db_filename+' already exists, no need to run makeblastdb')
+
+        
     if not os.path.exists(blastp_filename) :
         cmd = 'blastp -query '+query_fasta_filename+' -db '+tcdb_db_filename+' -out '+blastp_filename+' -max_target_seqs 5000 -evalue 1e-20 -num_threads 6  -outfmt \"6 qseqid sseqid pident evalue bitscore qstart qend qlen sstart send slen\" '
         print(cmd)
         status = os.system(cmd)
+    else:
+        print(blastp_filename+' already exists, no need to run blastp')
 
+    print('reading and storing tcdb annotation...')
     accession2annot = tcdbAnnotation(tcdb_annot_filename,tcdb_fasta_filename)
+
+    print('reading and parsing '+blastp_filename+'...')
     orf2annot,orf2score = parsingBlastpOutput(blastp_filename)
 
+    print('writting output '+output_filename+'...')
     output = open(output_filename,'w')
     output.write('orf'+'\t'+'annot'+'\n')
     for orf,annot in orf2annot.items() :
@@ -86,4 +102,5 @@ if __name__ == "__main__":
 
 
 
-# makeblastdb -in /data9/genasci/genasci_metabolism/analysis_after_filtering_drep/hmm/tcdb/tcdb.faa -dbtype prot -out /home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.faa
+
+    # makeblastdb -in /data9/genasci/genasci_metabolism/analysis_after_filtering_drep/hmm/tcdb/tcdb.faa -dbtype prot -out /home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.faa
