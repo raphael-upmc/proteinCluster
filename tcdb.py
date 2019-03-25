@@ -32,8 +32,9 @@ def tcdbAnnotation(tcdb_annot_filename,tcdb_fasta_filename) :
         try :
             accession = line.split()[0]
             enzyme = line.split(';')[1].strip()
+            enzyme = '.'.join( enzyme.strip().split('.')[:2])
             annot = ';'.join(line.split(';')[2:]).strip()
-            accession2annot[ accession ] = annot
+            accession2annot[ accession ] = enzyme+'|'+annot
         except :
             print(line)
     file.close()
@@ -47,12 +48,13 @@ def tcdbAnnotation(tcdb_annot_filename,tcdb_fasta_filename) :
             annot = liste[-1]
             enzyme = liste[-2]        
             enzyme = annot.split()[0]
-            enzyme = enzyme.strip()
+            enzyme = '.'.join( enzyme.strip().split('.')[:2])
+            
             annot = annot.split('[')[0]
             annot = annot.replace(enzyme,'')
             annot = annot.strip()        
             if accession not in accession2annot :
-                accession2annot[ accession ] = annot
+                accession2annot[ accession ] = enzyme+'|'+annot
         else:
             continue
     file.close()    
