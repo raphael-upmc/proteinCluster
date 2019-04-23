@@ -360,7 +360,6 @@ class DatasetAnnotation:
 
         print("\treading Pfam filename...")
         cpt = 0
-        orf2architecture = defaultdict(list)
         file = open(filename,"r")
         for line in file :
             line = line.rstrip()

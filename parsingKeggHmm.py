@@ -112,7 +112,7 @@ if __name__ == "__main__":
             print(cpt)
         cpt += 1
         range2score,maxi,hit = bestHit(accessionList,hmm2nc)
-        output.write(orf+'\t'+hit[0]+'\t'+str(range2score[maxi])+'\t'+str(hmm2nc[ hmm ])+'\t'+str(hit[1])+'\t'+str(hit[2])+'\t'+str(hit[3])+'\t'+str(hit[4])+'\n')
+        output.write(orf+'\t'+hit[0]+'\t'+str(range2score[maxi])+'\t'+str(hmm2nc[ hit[0] ])+'\t'+str(hit[1])+'\t'+str(hit[2])+'\t'+str(hit[3])+'\t'+str(hit[4])+'\n')
     output.close()
     print('done')
     sys.exit()

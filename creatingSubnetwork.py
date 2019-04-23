@@ -51,7 +51,7 @@ def writtingOutput(network_filename,subfamily2nb,subfam2fam,output_filename) :
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='from a list of subfamilies, exctract the subnetwork of hmm-hmm comparison')
+    parser = argparse.ArgumentParser(description='from a list of families, extract the subnetwork of hmm-hmm comparison')
     parser.add_argument('directory', help='the path to the  protein clustering directory (that contains the config.json file)')
     parser.add_argument('output_filename',help='the path of the OUTPUT_FILENAME where the subnetwork will be store')
     parser.add_argument('familyList_filename',help='the path of the FAMILYLIST_FILENAME')
