@@ -27,7 +27,6 @@ if __name__ == "__main__":
     else:
         sys.exit(args.orf2bin_filename+' does not exist, exit')
 
-
     cpu = args.cpu
 
     output_filename = os.path.abspath(args.output_filename)
@@ -58,33 +57,116 @@ if __name__ == "__main__":
         genome2seqList[ genome ].append( record )
     print(len(genome2seqList))
 
-output = open("rp16_table.tsv",'w')
-output.write('genome\tscaffold\tL15\tL18\tL6\tS8\tL5\tL24\tL14\tS17\tL16\tS3\tL22\tS19\tL2\tL4\tL3\tS10'+'\n')
 
-cpt = 0
-for genome,seqList in genome2seqList.items() :
-    cpt += 1
-    fasta_filename = 'tmp'+'.faa'
-    SeqIO.write(seqList,fasta_filename,'fasta')
-    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ 1>tmp.tsv 2>>error.log"
-    status = os.system(cmd)
-    print(str(cpt)+'\t'+genome+'\t'+str(status))
+    rp16_table_filename = 'rp16_table.tsv'
+    output = open(rp16_table_filename,'w')
+    output.write('genome\tscaffold\tL15\tL18\tL6\tS8\tL5\tL24\tL14\tS17\tL16\tS3\tL22\tS19\tL2\tL4\tL3\tS10'+'\n')
 
-
-    if status == 0 :
-        file = open('tmp.tsv','r')
-        next(file)
-        for line in file :
-            output.write(genome+'\t'+line)
-        file.close()
+    cpt = 0
+    for genome,seqList in genome2seqList.items() :
+        cpt += 1
+        fasta_filename = 'tmp'+'.faa'
+        SeqIO.write(seqList,fasta_filename,'fasta')
+        cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ 1>tmp.tsv 2>>error.log"
+        status = os.system(cmd)
+        print(str(cpt)+'\t'+genome+'\t'+str(status))
 
 
-    for usearch_filename in ['tmp-usearch_prot-rpL14_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS8_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL16_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL4_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS3_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL5_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS19_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL24_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL22_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL18_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL15_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL3_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS10_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS17_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL6_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL2_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL14_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS8_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL16_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL4_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS3_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL5_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS19_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL24_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL22_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL18_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL15_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL3_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS10_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS17_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL6_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL2_JGI_MDM.filtered.b6'] :
+        if status == 0 :
+            file = open('tmp.tsv','r')
+            next(file)
+            for line in file :
+                output.write(genome+'\t'+line)
+            file.close()
+                
 
-        if os.path.exists(usearch_filename) :
+        for usearch_filename in ['tmp-usearch_prot-rpL14_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS8_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL16_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL4_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS3_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL5_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS19_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL24_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL22_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL18_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL15_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL3_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS10_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS17_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL6_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL2_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL14_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS8_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL16_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL4_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS3_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL5_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS19_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL24_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL22_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL18_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL15_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL3_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS10_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS17_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL6_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL2_JGI_MDM.filtered.b6'] :
+
+            if os.path.exists(usearch_filename) :
             os.remove(usearch_filename)
 
-    if status == 0 :
-        os.remove(fasta_filename)
+        if status == 0 :
+            os.remove(fasta_filename)
 
-output.close()
+    output.close()
+
+    # reading the 16RP output
+    genome2scaffold2rp = dict()
+    file = open(rp16_table_filename,'r')
+    header = next(file).rstrip().split('\t')
+    for line in file :
+        line = line.rstrip()
+        liste = line.split('\t')
+        genome = liste[0]
+        if genome not in genomeSet :
+            continue
+        scaffold = liste[1]
+
+        if genome not in genome2scaffold2rp :
+            genome2scaffold2rp[ genome ] = defaultdict(dict)
+
+        if scaffold in genome2scaffold2rp[ genome ] :
+            sys.exit('error! should be impossible...')
+        
+        genome2scaffold2rp[ genome ][scaffold] = dict()
+
+        for i in range(2,len(liste)) :
+            rp = header[i]
+        
+            if liste[i] == '-' :
+                continue
+            else :
+                genome2scaffold2rp[ genome ][scaffold][ rp ] = liste[i]
+    file.close()
+    print(len(genome2scaffold2rp))
+
+    # creating the summary
+    output = open('genome2rp16.summary','w')
+    genome2summary = dict()
+    genome2scaffold = dict()
+    genomeSet = set()
+    for genome,scaffold2rp in genome2scaffold2rp.items() :
+        nb = 0
+        contaminationSet = set()
+        contamination = 'no'
+        rpSet = set()
+        for scaffold in scaffold2rp :
+            nb += len(scaffold2rp[scaffold])
+            for rp in scaffold2rp[scaffold] :
+                if rp not in rpSet :
+                    rpSet.add(rp)
+                else :
+                    contaminationSet.add(rp)
+                    contamination = 'yes' # the same RP is present in several copy
+
+        scaffold_nb = len(scaffold2rp)
+        scaffold = sorted(scaffold2rp.items(),key=lambda x:len(x[1]), reverse = True)[0][0] #selecting the scaffold with the most of 16RP along
+        best = len( scaffold2rp[scaffold] )
+        genome2scaffold[genome] = scaffold
+        if len(contaminationSet) == 0 :
+            result = '-'
+        else:
+            result = ','.join(list(contaminationSet))
+        
+        output.write(genome+'\t'+str(scaffold_nb)+'\t'+str(nb)+'\t'+str(best)+'\t'+contamination+'\t'+result+'\n')
+        genome2summary[ genome ] = genome+'\t'+str(scaffold_nb)+'\t'+str(nb)+'\t'+str(best)+'\t'+contamination+'\t'+result
+        genomeSet.add(genome)
+    output.close()
+    print(len(genomeSet))
+    print(len( genome2scaffold ) )
+    print( len( genome2scaffold2rp ))
+
+
+    sys.exit()
+    # test = set()
+    # seq2rp = dict()
+    # for genome,scaffold2rp in genome2scaffold2rp.items() :
+    #     if genome not in genome2scaffold :
+    #         continue
+    #     scaffold = genome2scaffold[genome]
+    #     for rp,seq in scaffold2rp[scaffold].items() :
+    #         if not ( rp == 'L16' or rp == 'S10' ):
+    #             test.add(genome)
+    #         seq2rp[genome+'|'+seq] = rp
+    # print(len(seq2rp))
+    # print(len(test))
