@@ -3,6 +3,8 @@
 import os,sys,re
 from collections import defaultdict
 from Bio import SeqIO
+import argparse
+from Bio.SeqRecord import SeqRecord
 
 
 
@@ -13,6 +15,7 @@ if __name__ == "__main__":
     parser.add_argument('protein_filename', help='the path of the FASTA_PROTEIN_FILE')
     parser.add_argument('orf2bin_filename',help='the path of the ORF2BIN_FILE, this file is a tab-separated file, first col is the orf, second col is the genome. First line is skipped')
     parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
+    parser.add_argument('output_summary_filename',help='the path of the OUTPUT_SUMMARY_FILE, results will be stored in this file')
     parser.add_argument('--cpu',type=int,default=6,help='number of CPUs (default: 6)')
 
     args = parser.parse_args()
@@ -28,19 +31,25 @@ if __name__ == "__main__":
         sys.exit(args.orf2bin_filename+' does not exist, exit')
 
     cpu = args.cpu
-
-    output_filename = os.path.abspath(args.output_filename)
-    cwd = '/'.join(cazy_output_filename.split('/')[:-1])
+    
+    output_summary_filename = os.path.abspath(args.output_summary_filename)
+    
+    output_aln_filename = os.path.abspath(args.output_filename)
+    cwd = '/'.join(output_aln_filename.split('/')[:-1])
     
     print('protein_filename: '+protein_filename)
     print('orf2bin_filename: '+orf2bin_filename)
-    print('output_filename: '+cazy_output_filename)
+    print('output_aln_filename: '+output_aln_filename)
+    print('output_summary_filename: '+output_summary_filename)
     print('number of CPUs: '+str(cpu))
     print('current working directory: '+cwd)
 
-    if os.path.exists(cwd+"/16RP_results") :
-        sys.exit(cwd+"/Results already exists, remove it first")
-    
+    folder = cwd+"/16RP_results"
+    if os.path.exists(folder) :
+        sys.exit(folder+" already exists, remove it first")
+
+    os.mkdir(folder)
+        
     orf2bin = dict()
     file = open(orf2bin_filename,'r')
     header = next(file)
@@ -50,15 +59,20 @@ if __name__ == "__main__":
         orf2bin[ orf ] = genome
     file.close()
 
-    ## ! when no results in hotpep, no file is created....
     genome2seqList = defaultdict(list)
+    orf2seq = dict()
     for record in SeqIO.parse(protein_filename,'fasta') :
         genome = orf2bin [ record.id ]
         genome2seqList[ genome ].append( record )
-    print(len(genome2seqList))
+        orf2seq[record.id] = record
+    print(str(len(genome2seqList))+' genomes')
 
 
-    rp16_table_filename = 'rp16_table.tsv'
+    #################################################
+    # running the script of ctb to detect the 16RPs #
+    #################################################
+
+    rp16_table_filename = cwd+'/'+'rp16_table.tsv'
     output = open(rp16_table_filename,'w')
     output.write('genome\tscaffold\tL15\tL18\tL6\tS8\tL5\tL24\tL14\tS17\tL16\tS3\tL22\tS19\tL2\tL4\tL3\tS10'+'\n')
 
@@ -67,10 +81,9 @@ if __name__ == "__main__":
         cpt += 1
         fasta_filename = 'tmp'+'.faa'
         SeqIO.write(seqList,fasta_filename,'fasta')
-        cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ 1>tmp.tsv 2>>error.log"
+        cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t "+str(cpu)+"1>tmp.tsv 2>>error.log"
         status = os.system(cmd)
         print(str(cpt)+'\t'+genome+'\t'+str(status))
-
 
         if status == 0 :
             file = open('tmp.tsv','r')
@@ -78,19 +91,22 @@ if __name__ == "__main__":
             for line in file :
                 output.write(genome+'\t'+line)
             file.close()
-                
 
         for usearch_filename in ['tmp-usearch_prot-rpL14_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS8_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL16_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL4_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS3_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL5_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS19_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL24_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL22_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL18_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL15_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL3_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS10_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS17_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL6_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL2_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL14_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS8_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL16_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL4_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS3_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL5_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS19_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL24_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL22_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL18_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL15_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL3_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS10_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS17_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL6_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL2_JGI_MDM.filtered.b6'] :
 
             if os.path.exists(usearch_filename) :
-            os.remove(usearch_filename)
+                os.remove(usearch_filename)
 
         if status == 0 :
             os.remove(fasta_filename)
 
     output.close()
 
-    # reading the 16RP output
+    
+    ###########################
+    # reading the 16RP output #
+    ###########################
+    
     genome2scaffold2rp = dict()
     file = open(rp16_table_filename,'r')
     header = next(file).rstrip().split('\t')
@@ -98,8 +114,6 @@ if __name__ == "__main__":
         line = line.rstrip()
         liste = line.split('\t')
         genome = liste[0]
-        if genome not in genomeSet :
-            continue
         scaffold = liste[1]
 
         if genome not in genome2scaffold2rp :
@@ -116,15 +130,18 @@ if __name__ == "__main__":
             if liste[i] == '-' :
                 continue
             else :
-                genome2scaffold2rp[ genome ][scaffold][ rp ] = liste[i]
+                orf = liste[i]
+                genome2scaffold2rp[ genome ][scaffold][ rp ] = orf
     file.close()
     print(len(genome2scaffold2rp))
 
-    # creating the summary
-    output = open('genome2rp16.summary','w')
+
+    ###############################
+    # selecting the best scaffold #
+    ###############################
+    
     genome2summary = dict()
     genome2scaffold = dict()
-    genomeSet = set()
     for genome,scaffold2rp in genome2scaffold2rp.items() :
         nb = 0
         contaminationSet = set()
@@ -147,26 +164,90 @@ if __name__ == "__main__":
             result = '-'
         else:
             result = ','.join(list(contaminationSet))
-        
-        output.write(genome+'\t'+str(scaffold_nb)+'\t'+str(nb)+'\t'+str(best)+'\t'+contamination+'\t'+result+'\n')
         genome2summary[ genome ] = genome+'\t'+str(scaffold_nb)+'\t'+str(nb)+'\t'+str(best)+'\t'+contamination+'\t'+result
-        genomeSet.add(genome)
+
+
+    ##########################################################
+    # extracting the fasta sequences and performing the MSAs #
+    ##########################################################
+    
+    rp2seq = defaultdict(list)
+    for genome,scaffold2rp in genome2scaffold2rp.items() :
+        if genome not in genome2scaffold :
+            continue
+        scaffold = genome2scaffold[genome]
+        
+        for rp,seq in scaffold2rp[scaffold].items() :
+            rp2seq[rp].append( SeqRecord(seq=orf2seq[seq].seq,id=genome,description="") )
+
+
+    print('performing MSA...')
+    for rp,seqList in rp2seq.items() :
+        print(rp+'\t'+str( len(seqList) ) )
+
+        output_filename = folder+'/'+rp+'.fa'
+        SeqIO.write(seqList,output_filename,'fasta')
+        mafft_filename = output_filename.replace('.fa','.mafft')
+        cmd = 'mafft --auto --thread '+str(cpu)+' '+output_filename+' > '+mafft_filename+' 2>/dev/null'
+        print(cmd)
+        os.system(cmd)
+        
+        trimal_filename = mafft_filename.replace('.mafft','.trimal')
+        cmd = 'trimal -keepheader -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename
+        print(cmd)
+        os.system(cmd)
+    
+    print('done')
+
+    print('creating final output...')
+    genome2aln = defaultdict(str)
+    for (path, dirs, files) in os.walk(folder):
+        for filename in files :
+            if not re.search(r'.trimal$',filename) :
+                continue
+            print(filename)
+            rpGenomeSet = set()
+            lengthSet = set()
+            for seq_record in SeqIO.parse(path+'/'+filename, "fasta"):
+                l = len(seq_record)
+                lengthSet.add(l)
+                genome2aln[ seq_record.description ] += str(seq_record.seq)
+                rpGenomeSet.add(seq_record.description)
+            if len(lengthSet) != 1 :
+                sys.exit('error : '+str(lengthSet) )
+
+            fakeSeq = ''
+            for i in range(l) :
+                fakeSeq += '-'
+
+            for genome in genome2scaffold2rp :
+                if genome not in rpGenomeSet :
+                    genome2aln[ genome ] += fakeSeq
+                else :
+                    continue
+
+                
+    ###############################
+    # Concatenating the 16RP MSAs #
+    ###############################
+
+    print('genome2aln: '+str(len(genome2aln)))
+    output1 = open(output_summary_filename,'w')
+    output1.write('genome'+'\t'+'nb_of_scaffolds'+'\t'+'nb_of_RPs'+'\t'+'nb_of_RPs_on_the_best_scaffold'+'\t'+'are_RPs_duplicated'+'\t'+'list_of_RPs_duplicated'+'\t'+'size'+'\n')
+
+    lengthSet = set()
+    output = open(output_aln_filename,'w')
+    for genome,aln in genome2aln.items() :
+
+        l = float(len(aln.replace('-',''))) / float(len(aln))
+        genome2summary[ genome ] += '\t'+str(l)
+        output1.write(genome2summary[ genome ]+'\n')
+
+        output.write('>'+genome+'\n')
+        output.write(aln+'\n')
     output.close()
-    print(len(genomeSet))
-    print(len( genome2scaffold ) )
-    print( len( genome2scaffold2rp ))
+    print('done')
 
 
-    sys.exit()
-    # test = set()
-    # seq2rp = dict()
-    # for genome,scaffold2rp in genome2scaffold2rp.items() :
-    #     if genome not in genome2scaffold :
-    #         continue
-    #     scaffold = genome2scaffold[genome]
-    #     for rp,seq in scaffold2rp[scaffold].items() :
-    #         if not ( rp == 'L16' or rp == 'S10' ):
-    #             test.add(genome)
-    #         seq2rp[genome+'|'+seq] = rp
-    # print(len(seq2rp))
-    # print(len(test))
+
+
