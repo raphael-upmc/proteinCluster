@@ -2,6 +2,7 @@
 
 import os,sys,re
 from collections import defaultdict
+import argparse
 
 
 def parsingBlastpOutput(blastp_filename) :
@@ -63,15 +64,31 @@ def tcdbAnnotation(tcdb_annot_filename,tcdb_fasta_filename) :
 
 
 if __name__ == "__main__":
-    
+
     tcdb_db_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb'
     tcdb_fasta_filename = '/data9/genasci/genasci_metabolism/analysis_after_filtering_drep/hmm/tcdb/tcdb.faa'
     tcdb_annot_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.dr'
-    
-    output_filename = 'tcdb.annot'
-    blastp_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.blastout'    
-    query_fasta_filename = '/data7/proteinfams/3.6k.PF/mmseqsProteinClustering/3600genomes.4pub.cleaned.faa'
 
+
+    parser = argparse.ArgumentParser(description='running  and parsing the TCDB')
+    parser.add_argument('fasta_filename', help='the path of the FASTA_FILE')
+    parser.add_argument('blastp_filename',help='the path of the BLASTP_FILE')
+    parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
+
+    args = parser.parse_args()
+
+    if os.path.exists(args.fasta_filename) :
+        query_fasta_filename = os.path.abspath(args.fasta_filename)
+    else:
+        sys.exit(args.fasta_filename+' does not exist, exit')
+
+    # output_filename = 'tcdb.annot'
+    # blastp_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.blastout'    
+    # query_fasta_filename = '/data7/proteinfams/3.6k.PF/mmseqsProteinClustering/3600genomes.4pub.cleaned.faa'
+
+    blastp_filename = args.blastp_filename
+    output_filename = args.output_filename
+    
     if not os.path.exists(tcdb_db_filename+'.pin') :
         cmd = 'makeblastdb -in '+tcdb_fasta_filename+' -dbtype prot -out '+tcdb_db_filename
         print(cmd)
