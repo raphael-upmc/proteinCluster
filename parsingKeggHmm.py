@@ -8,7 +8,7 @@ import argparse
 
 ''' this script parses the domtblout kegg hmm file and keep the best hit  '''
 
-def bestHit(accessionList,hmm2nc) :
+def bestHit(accessionList,hmm2nc,coverage) :
     maxi = maxi_hit = 0
     range2score = dict()
     for i in range( len(accessionList) ) :
@@ -19,7 +19,11 @@ def bestHit(accessionList,hmm2nc) :
         hmm = hit[0]
         nc = hmm2nc[ hmm ]
 
-        score = float(hmmCover) * float(queryCover) * float(bitscore)
+        if coverage :
+            score = float(hmmCover) * float(queryCover) * float(bitscore)
+        else:
+            score = float(bitscore)
+            
         range2score[ i ] = score
         if score > maxi :
             maxi = score
@@ -33,7 +37,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='this script parses the domtblout kegg hmm file and keep the best hit')
     parser.add_argument('hmmsearch_filename', help='the path of the HMMSEARCH_FILENAME')
     parser.add_argument('output_filename', help='the path of the OUTPUT_FILENAME')
-
+    parser.add_argument('--coverage',action='store_true',default=False,help='taking into account the coverage')
+    
     args = parser.parse_args()
 
     if os.path.exists(args.hmmsearch_filename) :
@@ -111,7 +116,7 @@ if __name__ == "__main__":
         if cpt % 100000 == 0 :
             print(cpt)
         cpt += 1
-        range2score,maxi,hit = bestHit(accessionList,hmm2nc)
+        range2score,maxi,hit = bestHit(accessionList,hmm2nc,args.coverage)
         output.write(orf+'\t'+hit[0]+'\t'+str(range2score[maxi])+'\t'+str(hmm2nc[ hit[0] ])+'\t'+str(hit[1])+'\t'+str(hit[2])+'\t'+str(hit[3])+'\t'+str(hit[4])+'\n')
     output.close()
     print('done')

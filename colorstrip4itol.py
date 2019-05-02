@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
     parser.add_argument('--color',help='the path of the COLOR2ANNOTATION_FILE, this file is a tab-separated file, first col is the annotation, second col is the color. First line is skipped')
     parser.add_argument('--name',help='name of the dataset in itol')
-
+    parser.add_argument('--nb',type=int,default=1,help='minimum number of annotations to be shown on itol (default: 1)')
 
     args = parser.parse_args()
 
@@ -78,6 +78,7 @@ if __name__ == "__main__":
     genomeMissing = set()
     annotation2colorFinal = dict()
 
+    annotation2count = defaultdict(int)
     t = Tree(tree_filename)
     otuSet = set()
     for leaf in t:
@@ -87,6 +88,7 @@ if __name__ == "__main__":
             continue
         
         annotation = genome2annotation[ leaf.name ]
+        annotation2count[ annotation ] += 1
         if annotation in annotation2color :
             otuSet.add(leaf.name)
             color = annotation2color[annotation]
@@ -94,6 +96,13 @@ if __name__ == "__main__":
         else:
             annotationMissing.add(annotation)
 
+
+    for annotation,count in annotation2count.items() :
+        if count <= args.nb :
+            del( annotation2colorFinal[annotation] )
+            del( annotation2color[annotation] )
+        else:
+            continue
         
     output = open(args.output_filename,'w')
     output.write('DATASET_COLORSTRIP'+'\n')
