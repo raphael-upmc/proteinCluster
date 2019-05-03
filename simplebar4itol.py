@@ -12,9 +12,7 @@ if __name__ == "__main__":
     parser.add_argument('tree_filename', help='the path of the TREE_FILE')
     parser.add_argument('annotation_filename',help='the path of the ANNOTATION_FILE, this file is a tab-separated file, first col is the genome, second col is the annotation. First line is skipped')
     parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
-    parser.add_argument('--color',help='the path of the COLOR2ANNOTATION_FILE, this file is a tab-separated file, first col is the annotation, second col is the color. First line is skipped')
     parser.add_argument('--name',help='name of the dataset in itol')
-    parser.add_argument('--nb',type=int,default=1,help='minimum number of annotations to be shown on itol (default: 1)')
 
     args = parser.parse_args()
 
@@ -28,12 +26,6 @@ if __name__ == "__main__":
     else:
         sys.exit(args.annotation_filename+' does not exist, exit')
 
-
-    if args.color != None :
-        if os.path.exists(args.color) :
-            color2annotation_filename = os.path.abspath(args.color)
-        else:
-            sys.exit(args.color+' does not exist, exit')
 
     if args.name != None :
         name = args.name
@@ -49,29 +41,10 @@ if __name__ == "__main__":
     header = next(file)
     for line in file :
         line = line.rstrip()
-        genome,annot = line.split('\t')
-        genome2annotation[ genome ] = annot
+        genome,size = line.split('\t')
+        genome2annotation[ genome ] = int(size)
     file.close()
 
-
-    # annotation2color
-    annotation2color = dict()
-    if args.color != None : # color file provided
-        file = open(color2annotation_filename,'r')
-        header = next(file)
-        for line in file :
-            line = line.rstrip()
-            annot,color = line.split('\t')
-            annotation2color[annot] = color
-        file.close()
-    else:
-        annotationList = list( set(genome2annotation.values()) )
-        k = len(annotationList)
-        selectedColorList = random.sample(randomColorList, k)
-        for i in range(k) :
-            annotation = annotationList[i]
-            color = selectedColorList[i]
-            annotation2color[annotation] = color
 
     # Load a tree structure from a newick file.
     annotationMissing = set()
@@ -86,51 +59,29 @@ if __name__ == "__main__":
         if leaf.name not in genome2annotation :
             genomeMissing.add(leaf.name)
             continue
-        
-        annotation = genome2annotation[ leaf.name ]
-        annotation2count[ annotation ] += 1
-        if annotation in annotation2color :
+        else:
             otuSet.add(leaf.name)
-            color = annotation2color[annotation]
-            annotation2colorFinal[annotation] = color
-        else:
-            annotationMissing.add(annotation)
-
-
-    for annotation,count in annotation2count.items() :
-        if count <= args.nb :
-            del( annotation2colorFinal[annotation] )
-            del( annotation2color[annotation] )
-        else:
-            continue
         
     output = open(args.output_filename,'w')
-    output.write('DATASET_COLORSTRIP'+'\n')
+    output.write('DATASET_SIMPLEBAR'+'\n')
     output.write('SEPARATOR TAB'+'\n')
     output.write('DATASET_LABEL\t'+name+'\n')
     output.write('COLOR\t#ff0000'+'\n')
 
-    output.write('\n\n')
-    output.write('LEGEND_TITLE\tDataset_legend'+'\n')
+    # output.write('\n\n')
+    # output.write('LEGEND_TITLE\tDataset_legend'+'\n')
 
-    output.write('LEGEND_SHAPES\t'+'\t'.join(['1'] * len(annotation2colorFinal))+'\n')
-    output.write('LEGEND_LABELS\t'+'\t'.join(annotation2colorFinal.keys())+'\n')
-    output.write('LEGEND_COLORS\t'+'\t'.join(annotation2colorFinal.values())+'\n')
+    # output.write('LEGEND_SHAPES\t'+'\t'.join(['1'] * len(annotation2colorFinal))+'\n')
+    # output.write('LEGEND_LABELS\t'+'\t'.join(annotation2colorFinal.keys())+'\n')
+    # output.write('LEGEND_COLORS\t'+'\t'.join(annotation2colorFinal.values())+'\n')
     
     output.write('\n\n')
     output.write('DATA'+'\n')
     
     for otu in otuSet :
-        if otu not in genome2annotation :
-            continue
-        
-        annotation = genome2annotation[ otu ]
-        
-        if annotation in annotation2color :
-            color = annotation2color[annotation]
-            output.write(otu+'\t'+color+'\n')
-        else:
-            continue
+        size = str( genome2annotation[ otu ] )
+        output.write(otu+'\t'+size+'\n')
+
     output.close()
 
     print(annotationMissing)
