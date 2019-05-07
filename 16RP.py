@@ -246,6 +246,7 @@ if __name__ == "__main__":
         output.write('>'+genome+'\n')
         output.write(aln+'\n')
     output.close()
+    output1.close()
     print('done')
 
 
