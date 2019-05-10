@@ -36,7 +36,21 @@ def kNearestNeighbors(orfName,geneList,k) :
 
 
 
-def genome2orfOrder(feature_filename) :
+def genome2orfOrder(feature_filename,orfSet) :
+
+    scaffoldSet = set()
+    for line in file :
+        line = line.rstrip()
+        orfName,genome,scaffold,start,end,strand = line.split("\t")
+        orfName = orfName.rstrip()
+        if orfName in orfSet :
+            scaffoldSet.add(scaffold)
+        else:
+            continue
+    file.close()
+    if len(scaffoldSet) > 100000 :
+        sys.exit('number of scaffolds greater than 100,000 ('+str(len(scaffoldSet))+'), split the orf file to reduce the memory usage')
+
     orf2genome = dict()
     orf2scaffold = dict()    
     genome2scaffold2orfList = dict()
@@ -44,6 +58,8 @@ def genome2orfOrder(feature_filename) :
     for line in file :
         line = line.rstrip()
         orfName,genome,scaffold,start,end,strand = line.split("\t")
+        if scaffold not in scaffoldSet :
+            continue
         orfName = orfName.rstrip()
         genome = genome.rstrip()
         orf2genome[orfName] = genome
@@ -96,7 +112,7 @@ if __name__ == "__main__":
         orfSet.add(liste[0])
     file.close()
 
-    genome2scaffold2orfList,orf2genome,orf2scaffold = genome2orfOrder(feature_filename)
+    genome2scaffold2orfList,orf2genome,orf2scaffold = genome2orfOrder(feature_filename,orfSet)
 
     
     
