@@ -39,6 +39,7 @@ def kNearestNeighbors(orfName,geneList,k) :
 def genome2orfOrder(feature_filename,orfSet) :
 
     scaffoldSet = set()
+    file = open(feature_filename,'r')
     for line in file :
         line = line.rstrip()
         orfName,genome,scaffold,start,end,strand = line.split("\t")
@@ -48,8 +49,13 @@ def genome2orfOrder(feature_filename,orfSet) :
         else:
             continue
     file.close()
+    
     if len(scaffoldSet) > 100000 :
         sys.exit('number of scaffolds greater than 100,000 ('+str(len(scaffoldSet))+'), split the orf file to reduce the memory usage')
+
+    # print(len(orfSet))
+    # print(len(scaffoldSet))
+
 
     orf2genome = dict()
     orf2scaffold = dict()    
