@@ -6,7 +6,7 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor,wait
 
 def runningProdigal(input_filename,output_filename,protein_filename,gene_filename) :
-    cmd = '/opt/bin/bio/prodigal -i '+input_filename+' -o '+output_filename+' -a '+protein_filename+' -d '+gene_filename+' -m -p single >/dev/null 2>/dev/null'
+    cmd = '/opt/bin/bio/prodigal -i '+input_filename+' -o '+output_filename+' -a '+protein_filename+' -d '+gene_filename+' -m -p single -g 25 >/dev/null 2>/dev/null'
     status = os.system(cmd)
     return cmd,status
 
@@ -16,6 +16,7 @@ if __name__ == "__main__":
     parser.add_argument('directory', help='the path of the DIRECTORY that contains the contigs file')
     parser.add_argument('--cwd', help='the path of the CWD where the store will be stored')
     parser.add_argument('--cpu',type=int,default=6,help='number of CPUs (default: 6)')
+    parser.add_argument('--force',action='store_true',default=False,help='force prodigal even if the output folders already exist  (default: False)')
     args = parser.parse_args()
 
     if os.path.exists(args.directory) :
@@ -37,21 +38,23 @@ if __name__ == "__main__":
     print('genome directory: '+directory)
     print('working directory: '+cwd)
     print('number of CPUs: '+str(cpu))
+    print()
+    
+    if not args.force :
+        folder = cwd+"/proteins"
+        if os.path.exists(folder) :
+            sys.exit(folder+" already exists, remove it first")
+        os.mkdir(folder)
 
-    folder = cwd+"/proteins"
-    if os.path.exists(folder) :
-        sys.exit(folder+" already exists, remove it first")
-    os.mkdir(folder)
+        folder = cwd+"/genes"
+        if os.path.exists(folder) :
+            sys.exit(folder+" already exists, remove it first")
+        os.mkdir(folder)
 
-    folder = cwd+"/genes"
-    if os.path.exists(folder) :
-        sys.exit(folder+" already exists, remove it first")
-    os.mkdir(folder)
-
-    folder = cwd+"/prodigal"
-    if os.path.exists(folder) :
-        sys.exit(folder+" already exists, remove it first")
-    os.mkdir(folder)
+        folder = cwd+"/prodigal"
+        if os.path.exists(folder) :
+            sys.exit(folder+" already exists, remove it first")
+        os.mkdir(folder)
 
 
 
