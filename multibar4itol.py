@@ -46,7 +46,7 @@ if __name__ == "__main__":
         genome,size,annotation = line.split('\t')
         if genome not in genome2annotation2nb :
             genome2annotation2nb[ genome ] = defaultdict(int)
-        genome2annotation2nb[ genome ][anotation] = int(size)
+        genome2annotation2nb[ genome ][annotation] = int(size)
         annotationSet.add(annotation)
     file.close()
 
@@ -70,11 +70,12 @@ if __name__ == "__main__":
             color = selectedColorList[i]
             annotation2color[annotation] = color
 
-    
+
+    genomeMissing = set()
     t = Tree(tree_filename)
     otuSet = set()
     for leaf in t:
-        if leaf.name not in genome2annotation :
+        if leaf.name not in genome2annotation2nb :
             genomeMissing.add(leaf.name)
             continue
         else:
@@ -94,12 +95,13 @@ if __name__ == "__main__":
     output.write('DATA'+'\n')
     
     for otu in otuSet :
-        size = str( genome2annotation[ otu ] )
-        output.write(otu+'\t'+size+'\n')
-
+        output.write(otu)
+        for annotation in annotation2color.keys() :
+            size = str( genome2annotation2nb[ otu ][annotation] )
+            output.write('\t'+size)
+        output.write('\n')
     output.close()
 
-    print(annotationMissing)
     print('\n\n')
     print(genomeMissing)
     
