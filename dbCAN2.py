@@ -2,7 +2,7 @@
 
 import os,sys,re
 from collections import defaultdict
-from annotation import *
+#from annotation import *
 from Bio import SeqIO
 import argparse
 

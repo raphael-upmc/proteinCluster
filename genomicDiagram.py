@@ -13,35 +13,35 @@ scaffold2max = dict()
 
 #feature_filename = '/data7/proteinfams/nitrogenase/myxobacteria/genomicContext/myxococcales_nitrogenase.annotation.txt'
 feature_filename = '/data7/proteinfams/Elusimicrobia/metabolism/nitrogenase.genomicContext.annotation'
+feature_filename = '/data7/proteinfams/BD1-5/genomicContext/BD1-5_nitrogenase.annotation.txt'
+feature_filename = '/home/meheurap/YcaO/allison_YcaO/genomicDiagram.txt'
 file = open(feature_filename,'r')
 for line in file :
     line = line.rstrip()
     if line == '' :
         continue
     #genome,scaffold,coord,orf,length,kegg_acc,kegg,pfam = line.split('\t')
-    genome,lineage,orf,coord,family,kegg,pfam,target = line.split('\t')
+    #genome,scaffold,orf,coord,length,keggAcc,kegg,pfam = line.split('\t')
+    scaffold,orf,coord,length,keggAcc,kegg,pfam = line.split('\t')
 
     if re.search(r'trna',orf):
         print(orf)
         continue
     
-    scaffold = '_'.join( orf.split('_')[:-1] )
-    
+    #scaffold = '_'.join( orf.split('_')[:-1] )
+    print(coord)
     start,endStrand = coord.split('..')
     end,strand = endStrand.split()
+    print(strand)
 
     
-
     # if not ( lineage == '-' or lineage == 'Elusimicrobia' ) :
     #     continue
 
-    if genome != 'Elusimicrobia bacterium GWA2_69_24' :
-        continue
-    
-    if strand == '(u)' :
-        strand = '1'
-    else:
-        strand = '-1'
+    # if strand == '(u)' :
+    #     strand = '1'
+    # else:
+    #     strand = '-1'
 
 
     if scaffold not in scaffold2min :
@@ -69,16 +69,16 @@ for line in file :
 
         
 #    if kegg == ' nitrogenase molybdenum-iron protein alpha chain' :
-    if kegg == 'nitrogenase molybdenum-iron protein alpha chain (K02586)' :
-        orf2color[orf] = 'blue'
+    if pfam == 'YcaO (PF02624)':
+        orf2color[orf] = 'green'
 
 #    if kegg == ' nitrogenase molybdenum-iron protein beta chain' :
-    if kegg == 'nitrogenase molybdenum-iron protein beta chain (K02591)' :
-        orf2color[orf] = 'green'
+    if pfam == 'Nitroreductase (PF00881)' :
+        orf2color[orf] = 'red'
 
     if re.search(r'PF04055',pfam) :
         if pfam == 'Radical_SAM (PF04055)' :
-            orf2color[orf] = 'red'
+            orf2color[orf] = 'blue'
         else:
             orf2color[orf] = 'purple'
             
@@ -99,7 +99,7 @@ for line in file :
         scaffold2orf2coord[ scaffold ] = dict()
 
     scaffold2orf2coord[ scaffold ][orf] = (int(start),int(end),int(strand))
-    
+    print(scaffold2orf2coord[ scaffold ][orf])
 file.close()
 
 

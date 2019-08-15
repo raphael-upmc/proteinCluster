@@ -6,7 +6,7 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor,wait
 
 def runningProdigal(input_filename,output_filename,protein_filename,gene_filename) :
-    cmd = '/opt/bin/bio/prodigal -i '+input_filename+' -o '+output_filename+' -a '+protein_filename+' -d '+gene_filename+' -m -p single -g 25 >/dev/null 2>/dev/null'
+    cmd = '/opt/bin/bio/prodigal -i '+input_filename+' -o '+output_filename+' -a '+protein_filename+' -d '+gene_filename+' -m -p single >/dev/null 2>/dev/null'
     status = os.system(cmd)
     return cmd,status
 
