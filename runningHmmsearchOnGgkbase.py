@@ -4,7 +4,7 @@
 import os,sys,re
 from collections import defaultdict
 from Bio import SeqIO
-
+import argparse
 
 def bestHit(accessionList) :
     maxi = maxi_hit = 0
@@ -25,7 +25,7 @@ def bestHit(accessionList) :
     return range2score,maxi_hit,besthit
 
 
-def readingHMM(domtblout_filename) :
+def readingHMM(domtblout_filename,bitscoreThreshold) :
     orf2accessions = defaultdict(list)
     file = open(domtblout_filename,'r')
     for line in file :
@@ -41,6 +41,10 @@ def readingHMM(domtblout_filename) :
         hmmLength = liste[5]
         evalue = liste[6]
         bitscore = liste[7]
+
+        if float(bitscore) < float(bitscoreThreshold) :
+            continue
+        
         cEvalue = liste[11] # conditional Evalue
         iEvalue = liste[12] # independant Evalue
 
@@ -72,39 +76,51 @@ def runningHMM(domtblout_filename,hmm_filename,fasta_filename) :
 
 
 
-
-
-ggkbase_filename = '/data7/proteinfams/ggkbase_201907/raph-all-proteins_20190722.txt'
-hmm_filename = sys.argv[1]
-
-
-
-domtblout_filename = '/data7/proteinfams/ggkbase_201907_domtblout/'+os.path.basename(hmm_filename)+'_ggkbase.domtblout'
-fasta_domtblout_filename = '/data7/proteinfams/ggkbase_201907_domtblout/'+os.path.basename(hmm_filename)+'_ggkbase.domtblout.faa'
-
-
-print('ggkbase fasta filename: '+ggkbase_filename)
-print('hmm filename: '+hmm_filename)
-print('hmmsearch output filename: '+domtblout_filename)
-print('fasta output filename: '+fasta_domtblout_filename)
-print()
-
-cmd,status = runningHMM(domtblout_filename,hmm_filename,ggkbase_filename)
-print('command line: '+cmd)
-print('status: '+str(status))
-
-if status != 0 :
-    sys.exit('\nERROR EXIT\n')
+if __name__ == "__main__":    
+    parser = argparse.ArgumentParser(description='this script runs hmmsearch, parses the resulting domtblout output file and extracts the fasta sequences')
+    parser.add_argument('hmm_filename', help='the path of the HMM_FILENAME')
+    parser.add_argument('--bitscoreThreshold',type=float,default=0,help='bitscore cutoff')
     
+    args = parser.parse_args()
 
-orf2accessions = readingHMM(domtblout_filename)
-print()
+    if os.path.exists(args.hmmsearch_filename) :
+        hmm_filename = os.path.abspath(args.hmm_filename)
+    else:
+        sys.exit(args.hmm_filename+' does not exist, exit')
+
+    if args.bitscoreThreshold < 0 :
+        sys.exit('bitscoreCutoff has to be a positive value')
+    else :
+        bitscoreThreshold = float(args.bitscoreThreshold)
+        
+
+    ggkbase_filename = '/data7/proteinfams/ggkbase_201907/raph-all-proteins_20190722.txt'
+    domtblout_filename = '/data7/proteinfams/ggkbase_201907_domtblout/'+os.path.basename(hmm_filename)+'_ggkbase.domtblout'
+    fasta_domtblout_filename = '/data7/proteinfams/ggkbase_201907_domtblout/'+os.path.basename(hmm_filename)+'_ggkbase.domtblout.faa'
 
 
-print('extracting fasta sequences...')
-seqList = list()
-for record in SeqIO.parse(ggkbase_filename,'fasta') :
-    if record.id in orf2accessions :
-        seqList.append(record)
-SeqIO.write(seqList,fasta_domtblout_filename,'fasta')
-print('done')
+    print('ggkbase fasta filename: '+ggkbase_filename)
+    print('hmm filename: '+hmm_filename)
+    print('hmmsearch output filename: '+domtblout_filename)
+    print('fasta output filename: '+fasta_domtblout_filename)
+    print('bitscore cutoff: '+str(bitscoreCutoff))
+    print()
+
+    cmd,status = runningHMM(domtblout_filename,hmm_filename,ggkbase_filename)
+    print('command line: '+cmd)
+    print('status: '+str(status))
+
+    if status != 0 :
+        sys.exit('\nERROR EXIT\n')
+
+    orf2accessions = readingHMM(domtblout_filename,bitscoreCutoff)
+    print()
+
+
+    print('extracting fasta sequences...')
+    seqList = list()
+    for record in SeqIO.parse(ggkbase_filename,'fasta') :
+        if record.id in orf2accessions :
+            seqList.append(record)
+    SeqIO.write(seqList,fasta_domtblout_filename,'fasta')
+    print('done')
