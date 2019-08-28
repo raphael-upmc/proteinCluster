@@ -83,7 +83,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    if os.path.exists(args.hmmsearch_filename) :
+    if os.path.exists(args.hmm_filename) :
         hmm_filename = os.path.abspath(args.hmm_filename)
     else:
         sys.exit(args.hmm_filename+' does not exist, exit')
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         bitscoreThreshold = float(args.bitscoreThreshold)
         
 
-    ggkbase_filename = '/data7/proteinfams/ggkbase_201907/raph-all-proteins_20190722.txt'
+    ggkbase_filename = '/data7/proteinfams/ggkbase_201907/raph-all-proteins_20190722.txt.cleaned'
     domtblout_filename = '/data7/proteinfams/ggkbase_201907_domtblout/'+os.path.basename(hmm_filename)+'_ggkbase.domtblout'
     fasta_domtblout_filename = '/data7/proteinfams/ggkbase_201907_domtblout/'+os.path.basename(hmm_filename)+'_ggkbase.domtblout.faa'
 
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     print('hmm filename: '+hmm_filename)
     print('hmmsearch output filename: '+domtblout_filename)
     print('fasta output filename: '+fasta_domtblout_filename)
-    print('bitscore cutoff: '+str(bitscoreCutoff))
+    print('bitscore cutoff: '+str(bitscoreThreshold))
     print()
 
     cmd,status = runningHMM(domtblout_filename,hmm_filename,ggkbase_filename)
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     if status != 0 :
         sys.exit('\nERROR EXIT\n')
 
-    orf2accessions = readingHMM(domtblout_filename,bitscoreCutoff)
+    orf2accessions = readingHMM(domtblout_filename,bitscoreThreshold)
     print()
 
 
