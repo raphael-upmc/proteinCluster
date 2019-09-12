@@ -69,6 +69,7 @@ def runningHMM(domtblout_filename,hmm_filename,fasta_filename) :
     orf2accessions = defaultdict(list)
     orf2besthit = dict()
     cmd = 'hmmsearch -E 1e-5 --cpu 6 --domtblout '+domtblout_filename+' '+hmm_filename+' '+fasta_filename+' >/dev/null 2>/dev/null'
+    print(cmd)
     status = os.system(cmd)
     return cmd,status
 

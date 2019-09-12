@@ -188,12 +188,12 @@ if __name__ == "__main__":
         output_filename = folder+'/'+rp+'.fa'
         SeqIO.write(seqList,output_filename,'fasta')
         mafft_filename = output_filename.replace('.fa','.mafft')
-        cmd = 'mafft --auto --thread '+str(cpu)+' '+output_filename+' > '+mafft_filename+' 2>/dev/null'
+        cmd = '/home/meheurap/programs/mafft-7.390-without-extensions/bin/mafft --auto --thread '+str(cpu)+' '+output_filename+' > '+mafft_filename+' 2>/dev/null'
         print(cmd)
         os.system(cmd)
         
         trimal_filename = mafft_filename.replace('.mafft','.trimal')
-        cmd = 'trimal -keepheader -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename
+        cmd = '/home/meheurap/programs/trimal-trimAl/source/trimal -keepheader -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename
         print(cmd)
         os.system(cmd)
     

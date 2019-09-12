@@ -50,7 +50,7 @@ def genome2orfOrder(feature_filename,orfSet) :
             continue
     file.close()
     
-    if len(scaffoldSet) > 100000 :
+    if len(scaffoldSet) > 250000 :
         sys.exit('number of scaffolds greater than 100,000 ('+str(len(scaffoldSet))+'), split the orf file to reduce the memory usage')
 
     # print(len(orfSet))
