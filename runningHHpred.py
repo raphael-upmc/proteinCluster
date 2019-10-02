@@ -158,7 +158,7 @@ if __name__ == "__main__":
     if args.probs < 0 or args.probs > 100 :
         sys.exit('probability threshold should be between 0 and 100! ('+str(args.probs)+')')
         
-    print('running HHblits on '+hhm_database)
+    print('running HHblits on '+hhblits_database)
     error = 0
     results = list()
     pool = ProcessPoolExecutor(args.cpu) # start 20 worker processes and 1 maxtasksperchild in order to release memory
