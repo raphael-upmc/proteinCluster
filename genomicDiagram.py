@@ -22,7 +22,7 @@ for line in file :
         continue
     #genome,scaffold,coord,orf,length,kegg_acc,kegg,pfam = line.split('\t')
     #genome,scaffold,orf,coord,length,keggAcc,kegg,pfam = line.split('\t')
-    scaffold,orf,coord,length,keggAcc,kegg,pfam = line.split('\t')
+    scaffold,orf,coord,length,keggAcc,kegg,pfam = line.split('\t')g
 
     if re.search(r'trna',orf):
         print(orf)
