@@ -8,9 +8,9 @@ import argparse
 
 ''' the script runs the HHpred software on the pfam db and parses the results '''
 
+
 class Pfam :
     """ a pfam class """
-
     def __init__(self,accession,name,clanAccession,clanName,description):
         self.accession = accession
         self.name = name
@@ -18,6 +18,7 @@ class Pfam :
         self.clanName = clanName
         self.description = description
 
+        
 def readingPfamDescription():
     pfamAccession2pfamObject = dict()
     info_filename = "/data7/proteinfams/PFAM/Pfam-A.clans.tsv"
@@ -28,6 +29,7 @@ def readingPfamDescription():
         pfamAccession2pfamObject[accession] = Pfam(accession,name,clanAccession,clanName,description)
     file.close()
     return pfamAccession2pfamObject
+
 
 def subfamily2familyFunction(tsv_filename) :
     subfamily2family = dict()
@@ -41,7 +43,7 @@ def subfamily2familyFunction(tsv_filename) :
     return subfamily2family
 
 
-def readingHhrFile(hhr_filename,pfamAccession2pfamObject) :
+def readingHhrFile(hhr_filename,hhblits_database_basename,accession2desc) :
     bestProb = 0
     bestHit = ''
 
@@ -66,12 +68,20 @@ def readingHhrFile(hhr_filename,pfamAccession2pfamObject) :
             if tag == 1 and line != '':
                 liste = line.split()
                 # print(liste)
-                if not re.search(r'\(',liste[-2]) :
+                if hhblits_database_basename == 'pfam' :
+                    target = accession2desc[liste[1]]+' ('+liste[1]+')'
+                elif hhblits_database_basename == 'scop40' :
+                    target = accession2desc[liste[1]]+' ('+liste[1]+')'
+                elif hhblits_database_basename == 'arCOG' :
                     target = liste[1]
+                else:
+                    target = liste[1]
+                    
+                if not re.search(r'\(',liste[-2]) :
                     probs = float(liste[-9])
                     qcoord = liste[-3]
                     qstart = float(qcoord.split('-')[0])
-                    qend = float(qcoord.split('-')[1])            
+                    qend = float(qcoord.split('-')[1])
                     qcover = ( qend - qstart + 1.0 ) / qlen            
                     scoord = liste[-2]
                     sstart = float(scoord.split('-')[0])
@@ -79,7 +89,6 @@ def readingHhrFile(hhr_filename,pfamAccession2pfamObject) :
                     slen = float(liste[-1].replace('(','').replace(')',''))
                     scover = ( send - sstart + 1 ) / slen
                 else: # special case when liste[9] = 120-198(200)
-                    target = liste[1]
                     probs = float(liste[-9])
                     qcoord = liste[-3]
                     qstart = float(qcoord.split('-')[0])
@@ -93,13 +102,14 @@ def readingHhrFile(hhr_filename,pfamAccession2pfamObject) :
 
                 if probs >= bestProb :
                     bestProb = probs
-                    bestHit = [query,target,pfamAccession2pfamObject[ target.split('.')[0] ].description,str(probs),str(qcover),str(scover)]
+                    bestHit = [query,target,str(probs),str(qcover),str(scover)]
         file.close()
     except :
-        print(hhr_filename)
+        return bestHit,False
 
 
-    return bestHit
+
+    return bestHit,True
 
 
 def runningHhblits(hhm_filename,hhblits_database,hhr_filename) :
@@ -145,7 +155,9 @@ if __name__ == "__main__":
         sys.exit(args.hhm_database+' does not exist, exit')
     else:
         hhblits_database = os.path.abspath(args.hhm_database)
-    
+        hhblits_database_basename = os.path.basename(hhblits_database)
+        
+        
 #    hhblits_database = '/data7/proteinfams/HHpred/pfam'
 
     if args.hhr_directory == None :
@@ -158,7 +170,7 @@ if __name__ == "__main__":
     if args.probs < 0 or args.probs > 100 :
         sys.exit('probability threshold should be between 0 and 100! ('+str(args.probs)+')')
         
-    print('running HHblits on '+hhblits_database)
+    print('running HHblits on '+hhblits_database+' '+hhblits_database_basename)
     error = 0
     results = list()
     pool = ProcessPoolExecutor(args.cpu) # start 20 worker processes and 1 maxtasksperchild in order to release memory
@@ -169,15 +181,16 @@ if __name__ == "__main__":
             cpt += 1
             hhm_filename = root+'/'+filename
             hhm_basename = os.path.basename(hhm_filename).split('.')[0]
-            hhblits_database_basename = os.path.basename(hhblits_database)        
+
+            
             hhr_filename = hhr_directory+'/'+hhm_basename+'__'+hhblits_database_basename+'.hhr'
             if os.path.exists(hhr_filename) :
                 continue
             else:
                 future = pool.submit( runningHhblits,hhm_filename,hhblits_database,hhr_filename )
                 results.append(future)
-            if cpt == 20 :
-                break
+            # if cpt == 20 :
+            #     break
 
     wait(results)
 
@@ -192,19 +205,52 @@ if __name__ == "__main__":
         print('\n'+str(error)+' hhm failed to run hhblits\n')
     print('done')
 
+    
 
     print('writting the final output...')
-    pfamAccession2pfamObject = readingPfamDescription()
+
+    # get accession description
+    accession2desc = dict()
+    if hhblits_database_basename == 'pfam' :
+        desc_filename = hhblits_database + '_hhm.ffdata'        
+        file = open(desc_filename,'r')
+        for line in file :
+            line = line.rstrip()
+            if re.match('NAME',line) :
+                liste = line.split(' ; ')
+                accession = liste[0].split()[-1]
+                desc = liste[-1]
+                accession2desc[ accession ] = desc
+            else:
+                continue
+        file.close()
+    elif hhblits_database_basename == 'scop40' :
+        desc_filename = hhblits_database + '_hhm.ffdata'        
+        file = open(desc_filename,'r')
+        for line in file :
+            line = line.rstrip()
+            if re.match('NAME ',line) :
+                liste = line.split()
+                #print(liste)
+                accession = liste[1]
+                desc = liste[2]
+                accession2desc[ accession ] = desc
+                print(accession+'\t'+desc)
+            else:
+                continue
+        file.close()
+        
+        
     output = open(output_filename,'w')
     for root, dirs, files in os.walk(hhr_directory):
         for filename in files :
             hhr_filename = root+'/'+filename
-            besthit = readingHhrFile(hhr_filename,pfamAccession2pfamObject)
+            besthit,result = readingHhrFile(hhr_filename,hhblits_database_basename,accession2desc)
             if len(besthit) == 0 :
-                print('error')
+                print(hhr_filename+' ==> error')
                 continue
             subfamily = besthit[0]
-            probs = besthit[3]
+            probs = besthit[2]
             if float(probs) < args.probs :
                 continue
             family = subfamily2family[subfamily]
