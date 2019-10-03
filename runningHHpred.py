@@ -73,7 +73,7 @@ def readingHhrFile(hhr_filename,hhblits_database_basename,accession2desc) :
                 elif hhblits_database_basename == 'scop40' :
                     target = accession2desc[liste[1]]+' ('+liste[1]+')'
                 elif hhblits_database_basename == 'arCOG' :
-                    target = liste[1]
+                    target = accession2desc[liste[1]]
                 else:
                     target = liste[1]
                     
@@ -239,7 +239,20 @@ if __name__ == "__main__":
             else:
                 continue
         file.close()
-        
+    elif hhblits_database_basename == 'arCOG' :
+        desc_filename = '/data7/proteinfams/HHpred/arCOG_2157_annotations.tsv'
+        file = open(desc_filename,'r')
+        for line in file :
+            line = line.rstrip()
+            liste = line.split('\t')
+            accession = liste[1]
+            letter = liste[2]
+            desc = liste[3]
+            if desc == '' :
+                accession2desc[ accession ] = 'no_description'+' ('+accession+')'+' ('+letter+')'
+            else:
+                accession2desc[ accession ] = desc+' ('+accession+')'+' ('+letter+')'
+        file.close()
         
     output = open(output_filename,'w')
     for root, dirs, files in os.walk(hhr_directory):
