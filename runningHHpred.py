@@ -77,7 +77,7 @@ def readingHhrFile(hhr_filename,hhblits_database_basename,accession2desc) :
                 else:
                     target = liste[1]
                     
-                if not re.search(r'\(',liste[-2]) :
+                if not re.search(r'-',liste[-1]) :
                     probs = float(liste[-9])
                     qcoord = liste[-3]
                     qstart = float(qcoord.split('-')[0])
@@ -89,12 +89,12 @@ def readingHhrFile(hhr_filename,hhblits_database_basename,accession2desc) :
                     slen = float(liste[-1].replace('(','').replace(')',''))
                     scover = ( send - sstart + 1 ) / slen
                 else: # special case when liste[9] = 120-198(200)
-                    probs = float(liste[-9])
-                    qcoord = liste[-3]
+                    probs = float(liste[-8])
+                    qcoord = liste[-2]
                     qstart = float(qcoord.split('-')[0])
                     qend = float(qcoord.split('-')[1])            
                     qcover = ( qend - qstart + 1.0 ) / qlen            
-                    scoord,slen = liste[-2].split('(')
+                    scoord,slen = liste[-1].split('(')
                     sstart = float(scoord.split('-')[0])
                     send = float(scoord.split('-')[1])            
                     slen = float(slen.replace('(','').replace(')',''))
@@ -105,6 +105,7 @@ def readingHhrFile(hhr_filename,hhblits_database_basename,accession2desc) :
                     bestHit = [query,target,str(probs),str(qcover),str(scover)]
         file.close()
     except :
+        print(liste)
         return bestHit,False
 
 
@@ -245,9 +246,14 @@ if __name__ == "__main__":
         for line in file :
             line = line.rstrip()
             liste = line.split('\t')
+            #print(liste)
             accession = liste[1]
             letter = liste[2]
-            desc = liste[3]
+            if len(liste) == 3:
+                desc = ''
+                #print(liste)
+            else:
+                desc = liste[3]
             if desc == '' :
                 accession2desc[ accession ] = 'no_description'+' ('+accession+')'+' ('+letter+')'
             else:
