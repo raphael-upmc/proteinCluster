@@ -105,7 +105,7 @@ def readingHhrFile(hhr_filename,hhblits_database_basename,accession2desc) :
                     bestHit = [query,target,str(probs),str(qcover),str(scover)]
         file.close()
     except :
-        print(liste)
+        #print(liste)
         return bestHit,False
 
 
@@ -236,7 +236,7 @@ if __name__ == "__main__":
                 accession = liste[1]
                 desc = liste[2]
                 accession2desc[ accession ] = desc
-                print(accession+'\t'+desc)
+                #print(accession+'\t'+desc)
             else:
                 continue
         file.close()

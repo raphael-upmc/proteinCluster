@@ -79,27 +79,28 @@ if __name__ == "__main__":
     cpt = 0
     for genome,seqList in genome2seqList.items() :
         cpt += 1
-        fasta_filename = 'tmp'+'.faa'
+        fasta_filename = genome+'.faa'
         SeqIO.write(seqList,fasta_filename,'fasta')
-        cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t "+str(cpu)+"1>tmp.tsv 2>>error.log"
+        cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t "+str(cpu)+"1>"+genome+".tsv 2>>error.log"
         status = os.system(cmd)
         print(str(cpt)+'\t'+genome+'\t'+str(status))
 
         if status == 0 :
-            file = open('tmp.tsv','r')
+            file = open(genome+'.tsv','r')
             next(file)
             for line in file :
                 output.write(genome+'\t'+line)
             file.close()
-
-        for usearch_filename in ['tmp-usearch_prot-rpL14_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS8_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL16_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL4_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS3_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL5_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS19_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL24_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL22_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL18_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL15_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL3_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS10_JGI_MDM.filtered.b6','tmp-usearch_prot-rpS17_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL6_JGI_MDM.filtered.b6','tmp-usearch_prot-rpL2_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL14_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS8_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL16_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL4_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS3_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL5_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS19_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL24_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL22_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL18_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL15_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL3_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS10_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpS17_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL6_JGI_MDM.filtered.b6','tmp-usearch_nucl-rpL2_JGI_MDM.filtered.b6'] :
+            
+        for usearch_filename in [genome+'-usearch_prot-rpL14_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS8_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL16_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL4_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS3_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL5_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS19_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL24_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL22_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL18_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL15_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL3_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS10_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS17_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL6_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL2_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL14_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS8_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL16_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL4_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS3_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL5_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS19_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL24_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL22_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL18_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL15_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL3_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS10_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS17_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL6_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL2_JGI_MDM.filtered.b6'] :
 
             if os.path.exists(usearch_filename) :
                 os.remove(usearch_filename)
 
         if status == 0 :
             os.remove(fasta_filename)
-
+            os.remove(genome+'.tsv')
+            
     output.close()
 
     
