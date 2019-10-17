@@ -8,8 +8,8 @@ from Bio.SeqRecord import SeqRecord
 
 
 
-def running16RP(genome,cpt):
-    fasta_filename = genome+'.faa'
+def running16RP(genome,cpt,cwd):
+    fasta_filename = cwd+'/'+genome+'.faa'
     SeqIO.write(seqList,fasta_filename,'fasta')
     cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t "+str(cpu)+"1>"+genome+".tsv 2>/dev/null"
     status = os.system(cmd)
@@ -17,7 +17,7 @@ def running16RP(genome,cpt):
 
     positionList = list()
     if status == 0 :
-        file = open(genome+'.tsv','r')
+        file = open(cwd+'/'+genome+'.tsv','r')
         next(file)
         for line in file :
             positionList.append(genome+'\t'+line)
@@ -31,8 +31,8 @@ def running16RP(genome,cpt):
     if os.path.exists(fasta_filename) :
         os.remove(fasta_filename)
 
-    if os.path.exists(genome+'.tsv') :
-        os.remove(genome+'.tsv')
+    if os.path.exists(cwd+'/'+genome+'.tsv') :
+        os.remove(cwd+'/'+genome+'.tsv')
 
     return(positionList)
 
@@ -107,9 +107,9 @@ if __name__ == "__main__":
     cpt = 0
     for genome,seqList in genome2seqList.items() :
         cpt += 1
-        positionResult = running16RP(genome,cpt)
+        positionResult = running16RP(genome,cpt,cwd)
         for line in positionResult :
-            output.write(line+'\n')
+            output.write(line)
     output.close()
 
     
