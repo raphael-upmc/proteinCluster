@@ -5,7 +5,7 @@ from collections import defaultdict
 from Bio import SeqIO
 import argparse
 from Bio.SeqRecord import SeqRecord
-
+from concurrent.futures import ProcessPoolExecutor,wait
 
 
 def running16RP(genome,cpt,cwd):
@@ -34,7 +34,7 @@ def running16RP(genome,cpt,cwd):
     if os.path.exists(cwd+'/'+genome+'.tsv') :
         os.remove(cwd+'/'+genome+'.tsv')
 
-    return(positionList)
+    return(status,genome,positionList)
 
 
 if __name__ == "__main__":
@@ -100,17 +100,37 @@ if __name__ == "__main__":
     # running the script of ctb to detect the 16RPs #
     #################################################
 
+    error = 0
+    results = list()
+    pool = ProcessPoolExecutor(cpu) # start 20 worker processes and 1 maxtasksperchild in order to release memory    
+    cpt = 0
+    for genome,seqList in genome2seqList.items() :
+        cpt += 1
+        future = pool.submit( running16RP,genome,cpt,cwd )
+        results.append(future)
+
+    wait(results)
+
+
     rp16_table_filename = cwd+'/'+'rp16_table.tsv'
     output = open(rp16_table_filename,'w')
     output.write('genome\tscaffold\tL15\tL18\tL6\tS8\tL5\tL24\tL14\tS17\tL16\tS3\tL22\tS19\tL2\tL4\tL3\tS10'+'\n')
 
-    cpt = 0
-    for genome,seqList in genome2seqList.items() :
-        cpt += 1
-        positionResult = running16RP(genome,cpt,cwd)
-        for line in positionResult :
-            output.write(line)
+    print('\n\n')
+    for elt in results :
+        status,genome,positionResult = elt.result()
+        if status != 0 :
+            print('\t'+genome+' '+'==>'+' '+'Error' )
+            error += 1
+        else:
+            for line in positionResult :
+                output.write(line)
     output.close()
+    pool.shutdown()
+    
+    if error != 0 :
+        print('\n'+str(error)+' genomes failed to run 16RP.py\n')
+    print('done')
 
     
     ###########################
