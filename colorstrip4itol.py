@@ -84,6 +84,7 @@ if __name__ == "__main__":
     for leaf in t:
 
         if leaf.name not in genome2annotation :
+            print(leaf.name)
             genomeMissing.add(leaf.name)
             continue
         
@@ -94,11 +95,16 @@ if __name__ == "__main__":
             color = annotation2color[annotation]
             annotation2colorFinal[annotation] = color
         else:
+            print(annotation)
             annotationMissing.add(annotation)
 
 
     for annotation,count in annotation2count.items() :
+        if annotation in annotationMissing :
+            continue
+        
         if count <= args.nb :
+            print(annotation)
             del( annotation2colorFinal[annotation] )
             del( annotation2color[annotation] )
         else:

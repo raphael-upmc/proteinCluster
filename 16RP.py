@@ -8,16 +8,18 @@ from Bio.SeqRecord import SeqRecord
 from concurrent.futures import ProcessPoolExecutor,wait
 
 
-def running16RP(genome,cpt,cwd):
+def running16RP(genome,cpt,cwd,seqList):
     fasta_filename = cwd+'/'+genome+'.faa'
+    result_filename = cwd+'/'+genome+'.tsv'
     SeqIO.write(seqList,fasta_filename,'fasta')
-    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t "+str(cpu)+"1>"+genome+".tsv 2>/dev/null"
+    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t "+str(cpu)+"1>"+result_filename+" 2>/dev/null"
+    print(cmd)
     status = os.system(cmd)
     print(str(cpt)+'\t'+genome+'\t'+str(status))
 
     positionList = list()
     if status == 0 :
-        file = open(cwd+'/'+genome+'.tsv','r')
+        file = open(result_filename,'r')
         next(file)
         for line in file :
             positionList.append(genome+'\t'+line)
@@ -30,16 +32,16 @@ def running16RP(genome,cpt,cwd):
 
     if os.path.exists(fasta_filename) :
         os.remove(fasta_filename)
-
-    if os.path.exists(cwd+'/'+genome+'.tsv') :
-        os.remove(cwd+'/'+genome+'.tsv')
-
+        
+    if os.path.exists(result_filename) :
+        os.remove(result_filename)
+        
     return(status,genome,positionList)
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='annotating protein sequences with CAZY using dbCAN2')
+    parser = argparse.ArgumentParser(description='extracting the 16 ribosomal proteins')
     parser.add_argument('protein_filename', help='the path of the FASTA_PROTEIN_FILE')
     parser.add_argument('orf2bin_filename',help='the path of the ORF2BIN_FILE, this file is a tab-separated file, first col is the orf, second col is the genome. First line is skipped')
     parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
@@ -90,7 +92,7 @@ if __name__ == "__main__":
     genome2seqList = defaultdict(list)
     orf2seq = dict()
     for record in SeqIO.parse(protein_filename,'fasta') :
-        genome = orf2bin [ record.id ]
+        genome = orf2bin[ record.id ]
         genome2seqList[ genome ].append( record )
         orf2seq[record.id] = record
     print(str(len(genome2seqList))+' genomes')
@@ -106,7 +108,7 @@ if __name__ == "__main__":
     cpt = 0
     for genome,seqList in genome2seqList.items() :
         cpt += 1
-        future = pool.submit( running16RP,genome,cpt,cwd )
+        future = pool.submit( running16RP,genome,cpt,cwd,seqList )
         results.append(future)
 
     wait(results)
