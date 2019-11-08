@@ -13,7 +13,6 @@ def running16RP(genome,cpt,cwd,seqList):
     result_filename = cwd+'/'+genome+'.tsv'
     SeqIO.write(seqList,fasta_filename,'fasta')
     cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t "+str(cpu)+"1>"+result_filename+" 2>/dev/null"
-    print(cmd)
     status = os.system(cmd)
     print(str(cpt)+'\t'+genome+'\t'+str(status))
 
@@ -47,7 +46,8 @@ if __name__ == "__main__":
     parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
     parser.add_argument('output_summary_filename',help='the path of the OUTPUT_SUMMARY_FILE, results will be stored in this file')
     parser.add_argument('--cpu',type=int,default=6,help='number of CPUs (default: 6)')
-
+    parser.add_argument('--rp14',action='store_true',default=False,help='only consider 14RPs for Archaea (default: False)')
+    
     args = parser.parse_args()
     
     if os.path.exists(args.protein_filename) :
@@ -73,7 +73,8 @@ if __name__ == "__main__":
     print('output_summary_filename: '+output_summary_filename)
     print('number of CPUs: '+str(cpu))
     print('current working directory: '+cwd)
-
+    print('14RP: '+str(args.rp14))
+    
     folder = cwd+"/16RP_results"
     if os.path.exists(folder) :
         sys.exit(folder+" already exists, remove it first")
@@ -158,7 +159,11 @@ if __name__ == "__main__":
 
         for i in range(2,len(liste)) :
             rp = header[i]
-        
+
+            if args.rp14 :
+                if rp == 'L16' or rp == 'S10' :
+                    continue
+       
             if liste[i] == '-' :
                 continue
             else :
