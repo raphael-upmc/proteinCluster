@@ -118,7 +118,7 @@ class  Matrix:
 
 if __name__ == "__main__":
 
-    min_size = 10 # opt arg 4
+    min_size = 20 # opt arg 4
     cpu = 6
     genomeOrder_filename = sys.argv[3] # opt arg 3
     familyOrder_filename = sys.argv[4] # opt arg 3

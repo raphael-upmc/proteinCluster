@@ -43,6 +43,7 @@ def mergingResults(hmm,hotpep,diamond) :
     elif len(result) == 1 : # return the only result
         return list(result.keys())[0]
     else :
+        print(result)
         return 'error'
 
     
@@ -163,7 +164,7 @@ if __name__ == "__main__":
         SeqIO.write(seqList,output_filename,'fasta')
         print(str(cpt)+'\t'+genome)
         index2genome[ str(cpt) ] = genome
-        cmd = "/data7/proteinfams/dbCAN2/Tools/run_dbcan.py "+output_filename+" protein --dia_eval 0.001 --dia_cpu "+str(cpu)+" --hmm_eval 0.001 --hmm_cpu "+str(cpu)+" --hotpep_cpu "+str(cpu)+" --out_dir "+cwd+"/Results --db_dir /data7/proteinfams/dbCAN2/Tools/example/db --out_pre "+str(cpt)+'.'+' >/dev/null'
+        cmd = "/data7/proteinfams/dbCAN2/Tools/run_dbcan.py "+output_filename+" protein --dia_eval 1e-20 --dia_cpu "+str(cpu)+" --hmm_eval 1e-20 --hmm_cpu "+str(cpu)+" --hotpep_cpu "+str(cpu)+" --out_dir "+cwd+"/Results --db_dir /data7/proteinfams/dbCAN2/Tools/example/db --out_pre "+str(cpt)+'.'+' >/dev/null'
         print(cmd)
         status = os.system(cmd)
         print('done with status: '+str(status))

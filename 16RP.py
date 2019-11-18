@@ -47,6 +47,7 @@ if __name__ == "__main__":
     parser.add_argument('output_summary_filename',help='the path of the OUTPUT_SUMMARY_FILE, results will be stored in this file')
     parser.add_argument('--cpu',type=int,default=6,help='number of CPUs (default: 6)')
     parser.add_argument('--rp14',action='store_true',default=False,help='only consider 14RPs for Archaea (default: False)')
+    parser.add_argument('--low-memory',action='store_true',default=False,help='low-memory (longer) (default: False)')
     
     args = parser.parse_args()
     
@@ -74,13 +75,15 @@ if __name__ == "__main__":
     print('number of CPUs: '+str(cpu))
     print('current working directory: '+cwd)
     print('14RP: '+str(args.rp14))
+    print('low-memory: '+str(args.low_memory))
     
     folder = cwd+"/16RP_results"
     if os.path.exists(folder) :
         sys.exit(folder+" already exists, remove it first")
 
     os.mkdir(folder)
-        
+
+    genomeSet = set()
     orf2bin = dict()
     file = open(orf2bin_filename,'r')
     header = next(file)
@@ -88,52 +91,134 @@ if __name__ == "__main__":
         line = line.rstrip()
         orf,genome = line.split('\t')
         orf2bin[ orf ] = genome
+        genomeSet.add(genome)
     file.close()
+    print(len(genomeSet))
 
-    genome2seqList = defaultdict(list)
-    orf2seq = dict()
-    for record in SeqIO.parse(protein_filename,'fasta') :
-        genome = orf2bin[ record.id ]
-        genome2seqList[ genome ].append( record )
-        orf2seq[record.id] = record
-    print(str(len(genome2seqList))+' genomes')
+    if args.low_memory :
+        bin2genomeSet = defaultdict(set)
+        nb = len(genomeSet) / 10
+        print(nb)
+        cpt_bin = 0
+        cpt_genome = 0
+        for genome in genomeSet :
+            bin2genomeSet[ cpt_bin ].add(genome)
+            if cpt_genome > nb :
+                print(str(cpt_bin)+'\t'+str(len(bin2genomeSet[ cpt_bin ])))
+                cpt_genome = 0
+                cpt_bin += 1
+            else:
+                cpt_genome += 1
+        print(str(cpt_bin)+'\t'+str(len(bin2genomeSet[ cpt_bin ])))
+        print('number of bins: '+str(len(bin2genomeSet)))
+        print('\n\n')
+
+        print('starting 16rp...')
+        bin2results = defaultdict(list)
+        pool = ProcessPoolExecutor(cpu) # start 20 worker processes and 1 maxtasksperchild in order to release memory    
+        cpt = 0
+        for cpt_bin,genomeSet in sorted(bin2genomeSet.items()) :
+            print(str(cpt_bin)+'\t'+str(len(genomeSet)))
+            genome2seqList = defaultdict(list)
+            orf2seq = dict()
+            for record in SeqIO.parse(protein_filename,'fasta') :                
+                genome = orf2bin[ record.id ]
+                if genome in genomeSet :
+                    genome2seqList[ genome ].append( record )
+                    orf2seq[record.id] = record
+            print('\t'+str(len(genome2seqList))+' genomes')
+
+            for genome,seqList in genome2seqList.items() :
+                cpt += 1
+                future = pool.submit( running16RP,genome,cpt,cwd,seqList )
+                bin2results[cpt_bin].append(future)
+            wait(bin2results[cpt_bin])
 
 
-    #################################################
-    # running the script of ctb to detect the 16RPs #
-    #################################################
+        rp16_table_filename = cwd+'/'+'rp16_table.tsv'
+        output = open(rp16_table_filename,'w')
+        output.write('genome\tscaffold\tL15\tL18\tL6\tS8\tL5\tL24\tL14\tS17\tL16\tS3\tL22\tS19\tL2\tL4\tL3\tS10'+'\n')
 
-    error = 0
-    results = list()
-    pool = ProcessPoolExecutor(cpu) # start 20 worker processes and 1 maxtasksperchild in order to release memory    
-    cpt = 0
-    for genome,seqList in genome2seqList.items() :
-        cpt += 1
-        future = pool.submit( running16RP,genome,cpt,cwd,seqList )
-        results.append(future)
+        print('\n\n')
+        orfSet = set()
+        error = 0
+        for cpt_bin,results in bin2results.items() :
+            for elt in results :
+                status,genome,positionResult = elt.result()
+                if status != 0 :
+                    print('\t'+genome+' '+'==>'+' '+'Error' )
+                    error += 1
+                else:
+                    for line in positionResult :
+                        output.write(line)
+                        liste = line.split('\t')
+                        del(liste[0])
+                        for orf in liste :
+                            if orf == '-' :
+                                continue
+                            else:
+                                orfSet.add(orf)
+        output.close()
+        pool.shutdown()
 
-    wait(results)
-
-
-    rp16_table_filename = cwd+'/'+'rp16_table.tsv'
-    output = open(rp16_table_filename,'w')
-    output.write('genome\tscaffold\tL15\tL18\tL6\tS8\tL5\tL24\tL14\tS17\tL16\tS3\tL22\tS19\tL2\tL4\tL3\tS10'+'\n')
-
-    print('\n\n')
-    for elt in results :
-        status,genome,positionResult = elt.result()
-        if status != 0 :
-            print('\t'+genome+' '+'==>'+' '+'Error' )
-            error += 1
-        else:
-            for line in positionResult :
-                output.write(line)
-    output.close()
-    pool.shutdown()
+        genome2seqList = defaultdict(list)
+        orf2seq = dict()
+        for record in SeqIO.parse(protein_filename,'fasta') :                
+            genome = orf2bin[ record.id ]
+            if record.id in orfSet :
+                genome2seqList[ genome ].append( record )
+                orf2seq[record.id] = record
+        
     
-    if error != 0 :
-        print('\n'+str(error)+' genomes failed to run 16RP.py\n')
-    print('done')
+        if error != 0 :
+            print('\n'+str(error)+' genomes failed to run 16RP.py\n')
+        print('done')
+            
+    else:
+        genome2seqList = defaultdict(list)
+        orf2seq = dict()
+        for record in SeqIO.parse(protein_filename,'fasta') :
+            genome = orf2bin[ record.id ]
+            genome2seqList[ genome ].append( record )
+            orf2seq[record.id] = record
+        print(str(len(genome2seqList))+' genomes')
+
+
+        #################################################
+        # running the script of ctb to detect the 16RPs #
+        #################################################
+
+        error = 0
+        results = list()
+        pool = ProcessPoolExecutor(cpu) # start 20 worker processes and 1 maxtasksperchild in order to release memory    
+        cpt = 0
+        for genome,seqList in genome2seqList.items() :
+            cpt += 1
+            future = pool.submit( running16RP,genome,cpt,cwd,seqList )
+            results.append(future)
+
+        wait(results)
+
+
+        rp16_table_filename = cwd+'/'+'rp16_table.tsv'
+        output = open(rp16_table_filename,'w')
+        output.write('genome\tscaffold\tL15\tL18\tL6\tS8\tL5\tL24\tL14\tS17\tL16\tS3\tL22\tS19\tL2\tL4\tL3\tS10'+'\n')
+
+        print('\n\n')
+        for elt in results :
+            status,genome,positionResult = elt.result()
+            if status != 0 :
+                print('\t'+genome+' '+'==>'+' '+'Error' )
+                error += 1
+            else:
+                for line in positionResult :
+                    output.write(line)
+        output.close()
+        pool.shutdown()
+    
+        if error != 0 :
+            print('\n'+str(error)+' genomes failed to run 16RP.py\n')
+        print('done')
 
     
     ###########################
