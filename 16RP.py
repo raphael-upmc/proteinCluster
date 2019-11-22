@@ -38,7 +38,7 @@ def running16RP(genome,cpt,cwd,seqList):
     return(status,genome,positionList)
 
 
-def running16RP(genome,cpt,cwd,fasta_filename):
+def running16RP_low_memory(genome,cpt,cwd,fasta_filename):
     result_filename = cwd+'/'+genome+'.tsv'
     cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t 1"+"1>"+result_filename+" 2>/dev/null"
     status = os.system(cmd)
@@ -125,7 +125,7 @@ if __name__ == "__main__":
         print(len(genomeSet))
         
         bin2genomeSet = defaultdict(set)
-        nb = len(genomeSet) / 20
+        nb = 3000
         print(nb)
         cpt_bin = 0
         cpt_genome = 0
@@ -162,26 +162,42 @@ if __name__ == "__main__":
 
             
             print(str(cpt_bin)+'\t'+str(len(bin2genomeSet[cpt_bin])))
-            genome2output = dict()
-            for genome in bin2genomeSet[cpt_bin] :
-                output_filename = folder+'/'+genome+'.faa'
-                genome2output[ genome ] = open(output_filename,'w')
+
+            # genome2output = dict()
+            # for genome in bin2genomeSet[cpt_bin] :
+            #     output_filename = folder+'/'+genome+'.faa'
+            #     genome2output[ genome ] = open(output_filename,'w')
                 
+            # for record in SeqIO.parse(protein_filename,'fasta') :                
+            #     if record.id not in orf2bin :
+            #         continue
+            #     else:
+            #         genome = orf2bin[ record.id ]
+            #         if genome in bin2genomeSet[cpt_bin] :
+            #             SeqIO.write(record,genome2output[ genome ],'fasta')
+            #         else:
+            #             sys.exit('error')
+                        
+            # for genome in genome2output :
+            #     genome2output[ genome ].close()
+            # genome2output.clear()
+
+            genome2seqList = defaultdict(list)
             for record in SeqIO.parse(protein_filename,'fasta') :                
                 if record.id not in orf2bin :
                     continue
                 else:
                     genome = orf2bin[ record.id ]
                     if genome in bin2genomeSet[cpt_bin] :
-                        SeqIO.write(record,genome2output[ genome ],'fasta')
+                        genome2seqList[genome].append(record)
                     else:
                         sys.exit('error')
-                        
-            for genome in genome2output :
-                genome2output[ genome ].close()
-            genome2output.clear()
-                
-            print('\t'+str(len(genome2seqList))+' genomes'+' ('+str(len(orf2bin))+' ORFs)')
+
+            for genome,seqList in genome2seqList.items() :
+                output_filename = folder+'/'+genome+'.faa'
+                SeqIO.write(seqList,output_filename,'fasta')
+                del[ genome2seqList[genome][:] ]
+            genome2seqList.clear()
             
             for genome in bin2genomeSet[cpt_bin] :
                 cpt += 1
