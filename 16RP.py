@@ -181,7 +181,7 @@ if __name__ == "__main__":
                 print('\t'+str(cpt)+'\t'+genome)
                 
                 genome_filename = folder+'/'+str(cpt)+'.faa'
-                SeqIO.write(genome2seqList[genome],output_filename,'fasta')
+                SeqIO.write(genome2seqList[genome],egnome_filename,'fasta')
                 del[ genome2seqList[genome][:] ]
 
                 future = pool.submit( running16RP_low_memory,genome,cpt,cwd,genome_filename )
