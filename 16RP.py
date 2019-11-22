@@ -394,7 +394,7 @@ if __name__ == "__main__":
         os.system(cmd)
         
         trimal_filename = mafft_filename.replace('.mafft','.trimal')
-        cmd = '/home/meheurap/programs/trimal-trimAl/source/trimal -keepheader -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename
+        cmd = '/home/meheurap/programs/trimal-trimAl/source/trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename
         print(cmd)
         os.system(cmd)
     
