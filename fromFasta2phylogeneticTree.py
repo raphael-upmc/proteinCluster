@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     trimal_filename = mafft_filename+'.trimal'
     html_filename = trimal_filename+'.html'
-    cmd = '/home/meheurap/programs/trimal-trimAl/source/trimal -keepheader -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename #+' -htmlout '+html_filename
+    cmd = '/home/meheurap/programs/trimal-trimAl/source/trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename #+' -htmlout '+html_filename
     print(cmd)
     os.system(cmd)
 

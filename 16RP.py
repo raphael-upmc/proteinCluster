@@ -38,6 +38,34 @@ def running16RP(genome,cpt,cwd,seqList):
     return(status,genome,positionList)
 
 
+def running16RP(genome,cpt,cwd,fasta_filename):
+    result_filename = cwd+'/'+genome+'.tsv'
+    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t 1"+"1>"+result_filename+" 2>/dev/null"
+    status = os.system(cmd)
+    #print(str(cpt)+'\t'+genome+'\t'+str(status))
+
+    positionList = list()
+    if status == 0 :
+        file = open(result_filename,'r')
+        next(file)
+        for line in file :
+            positionList.append(genome+'\t'+line)
+        file.close()
+            
+    for usearch_filename in [genome+'-usearch_prot-rpL14_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS8_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL16_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL4_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS3_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL5_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS19_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL24_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL22_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL18_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL15_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL3_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS10_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpS17_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL6_JGI_MDM.filtered.b6',genome+'-usearch_prot-rpL2_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL14_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS8_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL16_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL4_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS3_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL5_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS19_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL24_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL22_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL18_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL15_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL3_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS10_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpS17_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL6_JGI_MDM.filtered.b6',genome+'-usearch_nucl-rpL2_JGI_MDM.filtered.b6'] :
+
+        if os.path.exists(usearch_filename) :
+            os.remove(usearch_filename)
+
+    if os.path.exists(fasta_filename) :
+        os.remove(fasta_filename)
+        
+    if os.path.exists(result_filename) :
+        os.remove(result_filename)
+        
+    return(status,genome,positionList)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='extracting the 16 ribosomal proteins')
@@ -83,6 +111,8 @@ if __name__ == "__main__":
 
     os.mkdir(folder)
 
+
+    
     if args.low_memory :
         genomeSet = set()
         file = open(orf2bin_filename,'r')
@@ -107,6 +137,7 @@ if __name__ == "__main__":
                 cpt_bin += 1
             else:
                 cpt_genome += 1
+        
         print(str(cpt_bin)+'\t'+str(len(bin2genomeSet[ cpt_bin ])))
         print('number of bins: '+str(len(bin2genomeSet)))
         print('\n\n')
@@ -117,46 +148,50 @@ if __name__ == "__main__":
             pool = ProcessPoolExecutor(cpu) # start 20 worker processes and 1 maxtasksperchild in order to release memory    
             cpt = 0
 
-            print(str(cpt_bin)+'\t'+str(len(bin2genomeSet[cpt_bin])))
             orf2bin = dict()
             file = open(orf2bin_filename,'r')
             header = next(file)
             for line in file :
                 line = line.rstrip()
                 orf,genome = line.split('\t')
-                if genome in bin2genomeSet[cpt_bin] :
-                    orf2bin[orf] = genome
+                if genome in bin2genomeSet[ cpt_bin ] :
+                    orf2bin[ orf ] = genome
+                else:
+                    continue
             file.close()
 
-            genome2seqList = defaultdict(list)
-            orf2seq = dict()
+            
+            print(str(cpt_bin)+'\t'+str(len(bin2genomeSet[cpt_bin])))
+            genome2output = dict()
+            for genome in bin2genomeSet[cpt_bin] :
+                output_filename = folder+'/'+genome+'.faa'
+                genome2output[ genome ] = open(output_filename,'w')
+                
             for record in SeqIO.parse(protein_filename,'fasta') :                
                 if record.id not in orf2bin :
                     continue
                 else:
                     genome = orf2bin[ record.id ]
                     if genome in bin2genomeSet[cpt_bin] :
-                        genome2seqList[ genome ].append( record )
-                        orf2seq[record.id] = record
+                        SeqIO.write(record,genome2output[ genome ],'fasta')
                     else:
                         sys.exit('error')
+                        
+            for genome in genome2output :
+                genome2output[ genome ].close()
+            genome2output.clear()
+                
             print('\t'+str(len(genome2seqList))+' genomes'+' ('+str(len(orf2bin))+' ORFs)')
             
-            for genome in genome2seqList :
+            for genome in bin2genomeSet[cpt_bin] :
                 cpt += 1
                 print('\t'+str(cpt)+'\t'+genome)
-                future = pool.submit( running16RP,genome,cpt,cwd,genome2seqList[ genome ] )
+                genome_filename = folder+'/'+genome+'.faa'
+                future = pool.submit( running16RP_low_memory,genome,cpt,cwd,genome_filename )
                 bin2results[cpt_bin].append(future)
             wait(bin2results[cpt_bin])
             
             print('\t'+str(len(bin2results[cpt_bin])))
-            for genome in genome2seqList :
-                del[ genome2seqList[genome][:] ]
-            genome2seqList.clear()
-
-            for orf in orf2seq :
-                del[ orf2seq[orf] ]
-            orf2seq.clear()
             orf2bin.clear()
             
             pool.shutdown()
