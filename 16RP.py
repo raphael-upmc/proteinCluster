@@ -163,25 +163,6 @@ if __name__ == "__main__":
             
             print(str(cpt_bin)+'\t'+str(len(bin2genomeSet[cpt_bin])))
 
-            # genome2output = dict()
-            # for genome in bin2genomeSet[cpt_bin] :
-            #     output_filename = folder+'/'+genome+'.faa'
-            #     genome2output[ genome ] = open(output_filename,'w')
-                
-            # for record in SeqIO.parse(protein_filename,'fasta') :                
-            #     if record.id not in orf2bin :
-            #         continue
-            #     else:
-            #         genome = orf2bin[ record.id ]
-            #         if genome in bin2genomeSet[cpt_bin] :
-            #             SeqIO.write(record,genome2output[ genome ],'fasta')
-            #         else:
-            #             sys.exit('error')
-                        
-            # for genome in genome2output :
-            #     genome2output[ genome ].close()
-            # genome2output.clear()
-
             genome2seqList = defaultdict(list)
             for record in SeqIO.parse(protein_filename,'fasta') :                
                 if record.id not in orf2bin :
@@ -193,23 +174,23 @@ if __name__ == "__main__":
                     else:
                         sys.exit('error')
 
-            for genome,seqList in genome2seqList.items() :
-                output_filename = folder+'/'+genome+'.faa'
-                SeqIO.write(seqList,output_filename,'fasta')
-                del[ genome2seqList[genome][:] ]
-            genome2seqList.clear()
+
             
             for genome in bin2genomeSet[cpt_bin] :
                 cpt += 1
                 print('\t'+str(cpt)+'\t'+genome)
+                
                 genome_filename = folder+'/'+str(cpt)+'.faa'
+                SeqIO.write(genome2seqList[genome],output_filename,'fasta')
+                del[ genome2seqList[genome][:] ]
+
                 future = pool.submit( running16RP_low_memory,genome,cpt,cwd,genome_filename )
                 bin2results[cpt_bin].append(future)
             wait(bin2results[cpt_bin])
             
             print('\t'+str(len(bin2results[cpt_bin])))
             orf2bin.clear()
-            
+            genome2seqList.clear()            
             pool.shutdown()
             
         rp16_table_filename = cwd+'/'+'rp16_table.tsv'
