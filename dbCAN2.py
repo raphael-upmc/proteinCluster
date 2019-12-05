@@ -134,8 +134,8 @@ if __name__ == "__main__":
     print('number of CPUs: '+str(cpu))
     print('current working directory: '+cwd)
 
-    #if os.path.exists(cwd+"/Results") :
-    #    sys.exit(cwd+"/Results already exists, remove it first")
+    if os.path.exists(cwd+"/Results") :
+        sys.exit(cwd+"/Results already exists, remove it first")
     
     orf2bin = dict()
     file = open(orf2bin_filename,'r')
@@ -166,8 +166,8 @@ if __name__ == "__main__":
         index2genome[ str(cpt) ] = genome
         cmd = "/data7/proteinfams/dbCAN2/Tools/run_dbcan.py "+output_filename+" protein --dia_eval 1e-10 --dia_cpu "+str(cpu)+" --hmm_eval 1e-10 --hmm_cpu "+str(cpu)+" --hotpep_cpu "+str(cpu)+" --out_dir "+cwd+"/Results --db_dir /data7/proteinfams/dbCAN2/Tools/example/db --out_pre "+str(cpt)+'.'+' >/dev/null'
         print(cmd)
-        #status = os.system(cmd)
-        #print('done with status: '+str(status))
+        status = os.system(cmd)
+        print('done with status: '+str(status))
 
         
     ##########################
