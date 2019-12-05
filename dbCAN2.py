@@ -134,8 +134,8 @@ if __name__ == "__main__":
     print('number of CPUs: '+str(cpu))
     print('current working directory: '+cwd)
 
-    if os.path.exists(cwd+"/Results") :
-        sys.exit(cwd+"/Results already exists, remove it first")
+    #if os.path.exists(cwd+"/Results") :
+    #    sys.exit(cwd+"/Results already exists, remove it first")
     
     orf2bin = dict()
     file = open(orf2bin_filename,'r')
@@ -164,10 +164,10 @@ if __name__ == "__main__":
         SeqIO.write(seqList,output_filename,'fasta')
         print(str(cpt)+'\t'+genome)
         index2genome[ str(cpt) ] = genome
-        cmd = "/data7/proteinfams/dbCAN2/Tools/run_dbcan.py "+output_filename+" protein --dia_eval 1e-20 --dia_cpu "+str(cpu)+" --hmm_eval 1e-20 --hmm_cpu "+str(cpu)+" --hotpep_cpu "+str(cpu)+" --out_dir "+cwd+"/Results --db_dir /data7/proteinfams/dbCAN2/Tools/example/db --out_pre "+str(cpt)+'.'+' >/dev/null'
+        cmd = "/data7/proteinfams/dbCAN2/Tools/run_dbcan.py "+output_filename+" protein --dia_eval 1e-10 --dia_cpu "+str(cpu)+" --hmm_eval 1e-10 --hmm_cpu "+str(cpu)+" --hotpep_cpu "+str(cpu)+" --out_dir "+cwd+"/Results --db_dir /data7/proteinfams/dbCAN2/Tools/example/db --out_pre "+str(cpt)+'.'+' >/dev/null'
         print(cmd)
-        status = os.system(cmd)
-        print('done with status: '+str(status))
+        #status = os.system(cmd)
+        #print('done with status: '+str(status))
 
         
     ##########################
@@ -211,9 +211,12 @@ if __name__ == "__main__":
     for genome,files in genome2filename.items() :
         print(genome+'\t'+str(len(files)))
         if len(files) < 3 :
-            print(files)
-            sys.exit('error')
+            print('\terror'+'\t'+str(files))
+
         for filename in files :
+            if os.path.getsize(filename) == 0:
+                continue
+            
             if re.search(r'.diamond.out$',filename) :
                 orf2diamond = parsingDiamond(filename)
             elif re.search(r'.hmmer.out$',filename) :
@@ -236,6 +239,7 @@ if __name__ == "__main__":
             #    print(orf+'\t'+str(orf2hotpep[orf])+'\t'+str(sorted(orf2hmm[ orf ],key=lambda x:x[1]))+'\t'+str(sorted(orf2diamond[ orf ],key=lambda x:x[1])))
             result = mergingResults(orf2hmm[orf],orf2hotpep[orf],orf2diamond[orf])
             if result == 'error':
+                continue
                 sys.exit('error')
             output.write(orf+'\t'+result+'\n')
     output.close()
