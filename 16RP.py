@@ -14,7 +14,7 @@ def running16RP(genome,cpt,cwd,seqList):
     SeqIO.write(seqList,fasta_filename,'fasta')
     cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t 1"+"1>"+result_filename+" 2>/dev/null"
     status = os.system(cmd)
-    #print(str(cpt)+'\t'+genome+'\t'+str(status))
+    print(str(cpt)+'\t'+genome+'\t'+str(status))
 
     positionList = list()
     if status == 0 :
@@ -173,7 +173,6 @@ if __name__ == "__main__":
                         genome2seqList[genome].append(record)
                     else:
                         sys.exit('error')
-
 
             
             for genome in bin2genomeSet[cpt_bin] :

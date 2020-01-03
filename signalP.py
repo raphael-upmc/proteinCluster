@@ -11,7 +11,8 @@ import argparse
 import shutil
 
 def runSignalP(fasta_filename,output_filename,log_filename,option) :
-    cmd = "/data7/proteinfams/SignalP/signalp-4.1/signalp -f short "+option+" "+fasta_filename+" > "+output_filename+" 2>>"+log_filename
+    #cmd = "/data7/proteinfams/SignalP/signalp-4.1/signalp -f short "+option+" "+fasta_filename+" > "+output_filename+" 2>>"+log_filename
+    cmd = 'cd /home/meheurap/programs/signalp-5.0b/bin ; ./signalp -format short '+option+' -fasta '+fasta_filename+' -prefix '+output_filename+' > '+log_filename+' 2>>'+log_filename
     print(cmd)
     status = os.system(cmd)
     return status
@@ -22,11 +23,11 @@ if __name__ == "__main__":
     parser.add_argument('fasta_filename', help='the path of the FASTA_FILENAME')
     parser.add_argument('output_filename', help='the path of the OUTPUT_FILENAME')
     parser.add_argument('--cpu',type=int,default=1,help='number of CPUs (default: 1)')
-    parser.add_argument('--option',type=str,default='gram+',help='euk|gram+|gram- (default: gram+)')
+    parser.add_argument('--option',type=str,default='gram+',help='euk|gram+|gram-|arc (default: gram+)')
 
     args = parser.parse_args()
 
-    arg2option = {'euk' : '-t euk' , 'gram+' : '-t gram+' , 'gram-' : '-t gram-' }
+    arg2option = {'euk' : '-org euk' , 'gram+' : '-org gram+' , 'gram-' : '-org gram-' , 'arc' : '-org arch' }
     if args.option not in arg2option :
         sys.exit(args.option+' wrong argument, exit')
     else:
@@ -119,7 +120,7 @@ if __name__ == "__main__":
                 else :
                     liste = line.split()
                     defline = cpt2defline[str(liste[0])]
-                    result = liste[9]
+                    result = liste[1]
                     output.write(defline+"\t"+result+"\n")
             file.close()        
     output.close()

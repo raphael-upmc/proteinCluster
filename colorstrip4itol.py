@@ -79,7 +79,7 @@ if __name__ == "__main__":
     annotation2colorFinal = dict()
 
     annotation2count = defaultdict(int)
-    t = Tree(tree_filename)
+    t = Tree(tree_filename,1)
     otuSet = set()
     for leaf in t:
 
