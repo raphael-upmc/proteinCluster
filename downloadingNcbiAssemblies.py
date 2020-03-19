@@ -58,7 +58,8 @@ def downloadingAssemblySummary(assembly_summary_filename) :
         liste = urllib.request.urlretrieve(url, assembly_summary_filename)
         print(liste)
 
-def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet) :
+def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accession2gtdb) :
+    accession2filename = dict()
     file = open(assembly_summary_filename,'r')
     for line in file :
         line = line.rstrip()
@@ -72,15 +73,20 @@ def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,
         genome_rep = liste[13]
         ftp_path = liste[19]
         basename = ftp_path.split('/')[-1]
-        lineage = gettingFullLineage(taxId,taxId2taxName,taxId2parent)
+        lineage_ncbi = gettingFullLineage(taxId,taxId2taxName,taxId2parent)
+        if accession in accession2gtdb :
+            lineage_gtdb = accession2gtdb[ accession ]
+        else:
+            lineage_gtdb = 'Na'
         genome_filename = ftp_path+'/'+basename+'_genomic.fna.gz'
         for taxon in taxaSet :
-            if re.search(','+taxon+',',lineage) :
-                print(accession+'\t'+lineage)
+            if re.search(';'+taxon+';',lineage_gtdb) or re.search(','+taxon+',',lineage_ncbi):
+                print(accession+'\t'+lineage_gtdb+'\t'+lineage_ncbi)
+                accession2filename[accession] = genome_filename
             else:
                 continue
     file.close()
-    
+    return accession2filename
 
 def readingListTaxa(filename) :
     taxaSet = set()
@@ -94,22 +100,27 @@ def readingListTaxa(filename) :
     return taxaSet
 
 def readingGtdb() :
+    accession2gtdb = dict()
     bacteria_filename = 'bac120_metadata.tsv'
     file = open(bacteria_filename,'r')
     #header = next(file)
     for line in file :
         line = line.rstrip()
         liste = line.split('\t')
-        print(liste)
+        # print(liste)
         accession = liste[54]
         lineage_16S = liste[37]
         lineage_gtdb = liste[16]
         lineage_ncbi = liste[78]
-        print(accession+'\t'+lineage_ncbi+'\t'+lineage_gtdb)
+        #print(accession+'\t'+lineage_ncbi+'\t'+lineage_gtdb)
+        accession2gtdb[ accession ] = lineage_gtdb
     file.close()
+    return accession2gtdb
 
-readingGtdb()
-sys.exit()
+
+
+
+
 
 filename = 'taxaList'
 taxaSet = readingListTaxa(filename)
@@ -123,27 +134,26 @@ taxId2taxName,taxName2taxId = functionTaxId2taxonName()
 taxId2taxRank,taxId2parent = functionTaxId2taxon()
 print('done')
 
+accession2gtdb = readingGtdb()
+
+accession2filename = readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accession2gtdb)
+print(len(accession2filename))
 
 
-liste = readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet)
-
-
-sys.exit()
-
+cpt = 0
 accessionError = set()
-for accession,liste in accession2filename.items() :
-    for filename in liste :
-        cmd = 'wget -P '+output_directory+' '+filename
-        basename = os.path.basename(filename)
-        if not os.path.exists(output_directory+'/'+basename) :
-            print(accession)
-            print(cmd)
-            status = os.system(cmd)
-            if status != 0 :
-                print(status)
-                accessionError.add(accession)
-            else :
-                continue
+for accession,genome_filename in accession2filename.items() :
+    cpt += 1
+    output_genome_filename = 'test_directory/'+accession+'.fna.gz'
+    liste = urllib.request.urlretrieve(genome_filename, output_genome_filename)
+    print( str(cpt)+'\t'+str(liste[0])+'\t'+str(liste) )
+    if cpt == 30 :
+        sys.exit()        
+    # if status != 0 :
+    #     print(status)
+    #     accessionError.add(accession)
+    # else :
+    #     continue
 
 for accession in accessionError :
     print(accession2line[ accession ])
