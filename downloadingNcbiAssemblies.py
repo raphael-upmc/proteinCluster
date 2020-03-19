@@ -140,7 +140,7 @@ accession2filename = readingAssemblySummary(assembly_summary_filename,taxId2taxN
 print(len(accession2filename))
 
 
-#test
+#test1
 cpt = 0
 accessionError = set()
 for accession,genome_filename in accession2filename.items() :
