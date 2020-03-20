@@ -144,7 +144,7 @@ print('number of assemblies: '+str(len(accession2filename)))
 
 output_filename = 'accession2taxonomy.txt'
 output = open(output_filename,'w')
-
+output.write('assembly\tncbiTaxonomy\tgtdbTaxonomy\tftpUrl\n')
 directory = '/groups/banfield/users/meheurap/Paula/genomes'
 cpt = 0
 accessionError = set()
@@ -161,7 +161,7 @@ for accession,genome_filename in accession2filename.items() :
     else:
         gtdbTaxonomy = 'Na'
         
-    output.write(accession+'\t'+ncbiTaxonomy+'\t'+gtdbTaxonomy+'\t'+output_genome_filename+'\n')
+    output.write(accession+'\t'+ncbiTaxonomy+'\t'+gtdbTaxonomy+'\t'+genome_filename+'\n')
     if os.path.exists(output_genome_filename) :
         continue
     liste = urllib.request.urlretrieve(genome_filename, output_genome_filename)
