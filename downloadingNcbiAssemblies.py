@@ -60,6 +60,7 @@ def downloadingAssemblySummary(assembly_summary_filename) :
 
 def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accession2gtdb) :
     accession2filename = dict()
+    accession2ncbiTaxonomy = dict()
     file = open(assembly_summary_filename,'r')
     for line in file :
         line = line.rstrip()
@@ -83,10 +84,11 @@ def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,
             if re.search(';'+taxon+';',lineage_gtdb) or re.search(','+taxon+',',lineage_ncbi):
                 print(accession+'\t'+lineage_gtdb+'\t'+lineage_ncbi)
                 accession2filename[accession] = genome_filename
+                accession2ncbiTaxonomy[accession] = lineage_ncbi
             else:
                 continue
     file.close()
-    return accession2filename
+    return accession2filename,accession2ncbiTaxonomy
 
 def readingListTaxa(filename) :
     taxaSet = set()
@@ -136,25 +138,36 @@ print('done')
 
 accession2gtdb = readingGtdb()
 
-accession2filename = readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accession2gtdb)
+accession2filename,accession2ncbiTaxonomy = readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accession2gtdb)
 print(len(accession2filename))
 
 
-#test1
+directory = '/groups/banfield/users/meheurap/Paula/genomes'
 cpt = 0
 accessionError = set()
 for accession,genome_filename in accession2filename.items() :
     cpt += 1
-    output_genome_filename = 'test_directory/'+accession+'.fna.gz'
+    output_genome_filename = directory+'/'+accession+'.fna.gz'
+    if accession in accession2ncbiTaxonomy :
+        ncbiTaxonomy = accession2ncbiTaxonomy[accession]
+    else:
+        ncbiTaxonomy = 'Na'
+
+    if accession in accession2gtdb :
+        gtdbTaxonomy = accession2gtdb[accession]
+    else:
+        gtdbTaxonomy = 'Na'
+        
+    print(accession+'\t'+ncbiTaxonomy+'\t'+gtdbTaxonomy+'\t'+output_genome_filename)
+    if os.path.exists(output_genome_filename) :
+        continue
     liste = urllib.request.urlretrieve(genome_filename, output_genome_filename)
     print( str(cpt)+'\t'+str(liste[0])+'\t'+str(liste) )
-    if cpt == 30 :
-        sys.exit()        
-    # if status != 0 :
-    #     print(status)
-    #     accessionError.add(accession)
-    # else :
-    #     continue
 
+    if not os.path.exists(output_genome_filename) :
+        accessionError(accession)
+
+print('\n\nERROR\n\n')
+print(len(accessionError))
 for accession in accessionError :
-    print(accession2line[ accession ])
+    print(accession+'\t'+accession2line[ accession ])
