@@ -56,7 +56,7 @@ def downloadingAssemblySummary(assembly_summary_filename) :
     if not os.path.exists(assembly_summary_filename) :
         print('downloading assembly_summary_genbank.txt from ftp://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS')
         liste = urllib.request.urlretrieve(url, assembly_summary_filename)
-        print(liste)
+        #print(liste)
 
 def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accession2gtdb) :
     accession2filename = dict()
@@ -82,7 +82,7 @@ def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,
         genome_filename = ftp_path+'/'+basename+'_genomic.fna.gz'
         for taxon in taxaSet :
             if re.search(';'+taxon+';',lineage_gtdb) or re.search(','+taxon+',',lineage_ncbi):
-                print(accession+'\t'+lineage_gtdb+'\t'+lineage_ncbi)
+                #print(accession+'\t'+lineage_gtdb+'\t'+lineage_ncbi)
                 accession2filename[accession] = genome_filename
                 accession2ncbiTaxonomy[accession] = lineage_ncbi
             else:
@@ -139,8 +139,11 @@ print('done')
 accession2gtdb = readingGtdb()
 
 accession2filename,accession2ncbiTaxonomy = readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accession2gtdb)
-print(len(accession2filename))
+print('number of assemblies: '+str(len(accession2filename)))
 
+
+output_filename = 'accession2taxonomy.txt'
+output = open(output_filename,'w')
 
 directory = '/groups/banfield/users/meheurap/Paula/genomes'
 cpt = 0
@@ -158,7 +161,7 @@ for accession,genome_filename in accession2filename.items() :
     else:
         gtdbTaxonomy = 'Na'
         
-    print(accession+'\t'+ncbiTaxonomy+'\t'+gtdbTaxonomy+'\t'+output_genome_filename)
+    output.write(accession+'\t'+ncbiTaxonomy+'\t'+gtdbTaxonomy+'\t'+output_genome_filename+'\n')
     if os.path.exists(output_genome_filename) :
         continue
     liste = urllib.request.urlretrieve(genome_filename, output_genome_filename)
@@ -167,7 +170,10 @@ for accession,genome_filename in accession2filename.items() :
     if not os.path.exists(output_genome_filename) :
         accessionError(accession)
 
-print('\n\nERROR\n\n')
-print(len(accessionError))
+output.close()
+
+
+
+print(str(len(accessionError))+' assemblies were not downloaded')
 for accession in accessionError :
-    print(accession+'\t'+accession2line[ accession ])
+    print(accession+'\t'+accession2filename[ accession ])
