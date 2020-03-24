@@ -22,7 +22,7 @@ def HMMsearch() :
                     print(str(status)+'\t'+cmd)
 
 def readingHMM(domtblout_filename) :
-
+    orf2hmm = defaultdict(list)
     file = open(domtblout_filename,'r')
     for line in file :
         line = line.rstrip()
@@ -51,9 +51,10 @@ def readingHMM(domtblout_filename) :
 
         orfCover = float( int(envE) - int(envS) + 1 ) / float(length)
         hmmCover = float( int(hmmE) - int(hmmS) + 1 ) / float(hmmLength)
-    
+        orf2hmm[ orf ].append( hmm , float(evalue) , float(bitscore) , orfCover , hmmCover , length, hmmLength )
     file.close()
-    
+    return orf2hmm
+
 
 def running16RP(genome,cpt,cwd,seqList):
     fasta_filename = cwd+'/'+genome+'.faa'
