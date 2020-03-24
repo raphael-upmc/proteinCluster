@@ -7,12 +7,60 @@ import argparse
 from Bio.SeqRecord import SeqRecord
 from concurrent.futures import ProcessPoolExecutor,wait
 
+def HMMsearch() :
+    hmm_database = ''
+    directory = ''
+    for directory in directoryList :
+        for root, dirs, files in os.walk(directory):
+            for filename in files :
+                basename = filename.replace('.hmm','')
+                hmm_filename = root+'/'+filename
+                domtblout_filename = '/data7/proteinfams/genomicContext/domtblout/'+basename+'.domtblout'
+                if not os.path.exists(domtblout_filename) :
+                    cmd = 'hmmsearch -E 1e-10 --cpu 1 --domtblout '+domtblout_filename+' '+hmm_filename+' '+fasta_filename+' >/dev/null 2>/dev/null'
+                    status = os.system(cmd)
+                    print(str(status)+'\t'+cmd)
+
+def readingHMM(domtblout_filename) :
+
+    file = open(domtblout_filename,'r')
+    for line in file :
+        line = line.rstrip()
+        if re.search(r'^#',line) :
+            continue
+
+        liste = line.split()
+        orf = liste[0]
+        length = liste[2]
+        hmm = liste[3]
+        ko = liste[3].split(".")[0]
+        hmmLength = liste[5]
+        evalue = liste[6]
+        bitscore = liste[7]
+        cEvalue = liste[11] # conditional Evalue
+        iEvalue = liste[12] # independant Evalue
+
+        hmmS = liste[15]
+        hmmE = liste[16]
+
+        aliS = liste[17]
+        aliE = liste[18]
+
+        envS = liste[19]
+        envE = liste[20]
+
+        orfCover = float( int(envE) - int(envS) + 1 ) / float(length)
+        hmmCover = float( int(hmmE) - int(hmmS) + 1 ) / float(hmmLength)
+    
+    file.close()
+    
 
 def running16RP(genome,cpt,cwd,seqList):
     fasta_filename = cwd+'/'+genome+'.faa'
     result_filename = cwd+'/'+genome+'.tsv'
     SeqIO.write(seqList,fasta_filename,'fasta')
-    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t 1"+"1>"+result_filename+" 2>/dev/null"
+    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /groups/banfield/db/ribosomal_proteins/hug/r04_11_2016 -t 1 "+"1>"+result_filename #+" 2>/dev/null"
+    print(cmd)
     status = os.system(cmd)
     print(str(cpt)+'\t'+genome+'\t'+str(status))
 
@@ -40,7 +88,7 @@ def running16RP(genome,cpt,cwd,seqList):
 
 def running16RP_low_memory(genome,cpt,cwd,fasta_filename):
     result_filename = cwd+'/'+str(cpt)+'.tsv'
-    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /home/cbrown/databases/rp16/Laura/ -t 1"+"1>"+result_filename+" 2>/dev/null"
+    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /groups/banfield/db/ribosomal_proteins/hug/r04_11_2016 -t 1 "+"1>"+result_filename+" 2>/dev/null"
     status = os.system(cmd)
     #print(str(cpt)+'\t'+genome+'\t'+str(status))
 
@@ -274,7 +322,8 @@ if __name__ == "__main__":
             cpt += 1
             future = pool.submit( running16RP,genome,cpt,cwd,seqList )
             results.append(future)
-
+            # if cpt == 100 :
+            #     break
         wait(results)
 
 
@@ -388,12 +437,12 @@ if __name__ == "__main__":
         output_filename = folder+'/'+rp+'.fa'
         SeqIO.write(seqList,output_filename,'fasta')
         mafft_filename = output_filename.replace('.fa','.mafft')
-        cmd = '/home/meheurap/programs/mafft-7.390-without-extensions/bin/mafft --auto --thread '+str(cpu)+' '+output_filename+' > '+mafft_filename+' 2>/dev/null'
+        cmd = '/shared/software/bin/mafft --auto --thread '+str(cpu)+' '+output_filename+' > '+mafft_filename+' 2>/dev/null'
         print(cmd)
         os.system(cmd)
         
         trimal_filename = mafft_filename.replace('.mafft','.trimal')
-        cmd = '/home/meheurap/programs/trimal-trimAl/source/trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename
+        cmd = '/groups/banfield/users/meheurap/programs/trimal-trimAl/source/trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename
         print(cmd)
         os.system(cmd)
     
