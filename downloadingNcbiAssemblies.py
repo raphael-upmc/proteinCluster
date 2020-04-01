@@ -82,7 +82,7 @@ def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,
             lineage_gtdb = 'Na'
         genome_filename = ftp_path+'/'+basename+'_genomic.fna.gz'
 
-        if accession in accessionSet :
+        if accession in accessionSet or liste[17] in accessionSet :
             accession2filename[accession] = genome_filename
             accession2ncbiTaxonomy[accession] = lineage_ncbi
         
@@ -198,8 +198,7 @@ if __name__ == "__main__":
     print('number of assemblies: '+str(len(accession2filename)))
 
 
-    output_filename = 'accession2taxonomy.txt'
-    output = open(output_filename,'w')
+    output = open(output_summary_filename,'w')
     output.write('assembly\tncbiTaxonomy\tgtdbTaxonomy\tftpUrl\n')
 
     cpt = 0

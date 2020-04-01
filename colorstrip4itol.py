@@ -54,6 +54,24 @@ if __name__ == "__main__":
     file.close()
 
 
+    annotation2count = defaultdict(int)
+    t = Tree(tree_filename,1)
+    for leaf in t:
+        if leaf.name not in genome2annotation :
+            continue
+        annotation = genome2annotation[ leaf.name ]
+        annotation2count[ annotation ] += 1
+
+    annotationList = list( set(annotation2count.keys()) )
+    for annotation in annotationList :
+        count = annotation2count[annotation]
+        if count <= args.nb :
+            print(annotation)
+            del( annotation2count[annotation] )
+        else:
+            continue
+
+        
     # annotation2color
     annotation2color = dict()
     if args.color != None : # color file provided
@@ -65,7 +83,7 @@ if __name__ == "__main__":
             annotation2color[annot] = color
         file.close()
     else:
-        annotationList = list( set(genome2annotation.values()) )
+        annotationList = list( set(annotation2count.keys()) )
         k = len(annotationList)
         selectedColorList = random.sample(randomColorList, k)
         for i in range(k) :
@@ -78,7 +96,6 @@ if __name__ == "__main__":
     genomeMissing = set()
     annotation2colorFinal = dict()
 
-    annotation2count = defaultdict(int)
     t = Tree(tree_filename,1)
     otuSet = set()
     for leaf in t:
@@ -89,7 +106,6 @@ if __name__ == "__main__":
             continue
         
         annotation = genome2annotation[ leaf.name ]
-        annotation2count[ annotation ] += 1
         if annotation in annotation2color :
             otuSet.add(leaf.name)
             color = annotation2color[annotation]
@@ -99,16 +115,6 @@ if __name__ == "__main__":
             annotationMissing.add(annotation)
 
 
-    for annotation,count in annotation2count.items() :
-        if annotation in annotationMissing :
-            continue
-        
-        if count <= args.nb :
-            print(annotation)
-            del( annotation2colorFinal[annotation] )
-            del( annotation2color[annotation] )
-        else:
-            continue
         
     output = open(args.output_filename,'w')
     output.write('DATASET_COLORSTRIP'+'\n')

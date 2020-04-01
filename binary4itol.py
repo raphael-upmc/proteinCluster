@@ -13,7 +13,7 @@ if __name__ == "__main__":
     parser.add_argument('matrix_filename',help='the path of the MATRIX_FILE, this file is a tab-separated file, cols are functions/traits, lines are genomes')
     parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
     parser.add_argument('--name',help='name of the dataset in itol')
-
+    parser.add_argument('--color',help='the path of the COLOR2ANNOTATION_FILE, this file is a tab-separated file, first col is the annotation, second col is the color. First line is skipped')
     args = parser.parse_args()
 
     if os.path.exists(args.tree_filename) :
@@ -27,11 +27,11 @@ if __name__ == "__main__":
         sys.exit(args.matrix_filename+' does not exist, exit')
 
 
-    # if args.color != None :
-    #     if os.path.exists(args.color) :
-    #         color2annotation_filename = os.path.abspath(args.color)
-    #     else:
-    #         sys.exit(args.color+' does not exist, exit')
+    if args.color != None :
+        if os.path.exists(args.color) :
+            color2annotation_filename = os.path.abspath(args.color)
+        else:
+            sys.exit(args.color+' does not exist, exit')
 
     if args.name != None :
         name = args.name
@@ -57,24 +57,16 @@ if __name__ == "__main__":
     file.close()
 
 
-    # # annotation2color
-    # annotation2color = dict()
-    # if args.color != None : # color file provided
-    #     file = open(color2annotation_filename,'r')
-    #     header = next(file)
-    #     for line in file :
-    #         line = line.rstrip()
-    #         annot,color = line.split('\t')
-    #         annotation2color[annot] = color
-    #     file.close()
-    # else:
-    #     annotationList = list( set(genome2annotation.values()) )
-    #     k = len(annotationList)
-    #     selectedColorList = random.sample(randomColorList, k)
-    #     for i in range(k) :
-    #         annotation = annotationList[i]
-    #         color = selectedColorList[i]
-    #         annotation2color[annotation] = color
+    # annotation2color
+    annotation2color = dict()
+    if args.color != None : # color file provided
+        file = open(color2annotation_filename,'r')
+        header = next(file)
+        for line in file :
+            line = line.rstrip()
+            annot,color = line.split('\t')
+            annotation2color[annot] = color
+        file.close()
 
     # Load a tree structure from a newick file.
     genomeMissing = set()
@@ -99,7 +91,10 @@ if __name__ == "__main__":
 
     output.write('FIELD_SHAPES\t'+'\t'.join(['1'] * annotationSize)+'\n')
     output.write('FIELD_LABELS\t'+'\t'.join(annotationList)+'\n')
-    output.write('FIELD_COLORS\t'+'\t'.join(['#0000ff'] * annotationSize)+'\n')
+    output.write('FIELD_COLORS')
+    for annot in annotationList :
+        output.write('\t'+annotation2color[annot])
+    output.write('\n')
     
     output.write('\n\n')
     output.write('DATA'+'\n')
