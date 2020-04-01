@@ -59,6 +59,7 @@ if __name__ == "__main__":
 
     # annotation2color
     annotation2color = dict()
+    color = randomColorList[random.randint(0,len(randomColorList)-1)]
     if args.color != None : # color file provided
         file = open(color2annotation_filename,'r')
         header = next(file)
@@ -68,7 +69,6 @@ if __name__ == "__main__":
             annotation2color[annot] = color
         file.close()
     else:
-        color = randomColorList[random.randint(0,len(randomColorList)-1)]
         for annotation in annotationList :
             annotation2color[ annotation ] = color
             
