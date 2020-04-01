@@ -67,7 +67,11 @@ if __name__ == "__main__":
             annot,color = line.split('\t')
             annotation2color[annot] = color
         file.close()
-
+    else:
+        color = randomColorList[random.randint(0,len(randomColorList)-1)]
+        for annotation in annotationList :
+            annotation2color[ annotation ] = color
+            
     # Load a tree structure from a newick file.
     genomeMissing = set()
     t = Tree(tree_filename)
@@ -84,7 +88,7 @@ if __name__ == "__main__":
     output.write('DATASET_BINARY'+'\n')
     output.write('SEPARATOR TAB'+'\n')
     output.write('DATASET_LABEL\t'+name+'\n')
-    output.write('COLOR\t'+randomColorList[random.randint(0,len(randomColorList)-1)]+'\n')
+    output.write('COLOR\t'+color+'\n')
 
     output.write('\n\n')
     output.write('SHOW_LABELS\t1'+'\n')
