@@ -1,4 +1,4 @@
-#! /home/meheurap/.pyenv/shims/python
+#! env python
 
 import os,sys,re
 from collections import defaultdict
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     file.close()
     print(len(network_data))
 
-    load_viz_new_filename = '/home/meheurap/script/load_viz_new.js'
+    load_viz_new_filename = '/home/meheurap/script/proteinCluster/load_viz_new.js'
     load_viz_new = ''
     file = open(load_viz_new_filename,'rt')
     for line in file :
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     file.close()
 
 
-    clustergrammer_js_filename = '/home/meheurap/script/clustergrammer.js'
+    clustergrammer_js_filename = '/home/meheurap/script/proteinCluster/clustergrammer.js'
     cg_new = ''
     file = open(clustergrammer_js_filename,'rt')
     for line in file :
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     print(html_output_filename)
     output = open(html_output_filename,'w')
 
-    html_filename = '/home/meheurap/script/clustergrammer_model.html'
+    html_filename = '/home/meheurap/script/proteinCluster/clustergrammer_model.html'
     file = open(html_filename,'rt')
     for line in file :
         line = line.rstrip()
