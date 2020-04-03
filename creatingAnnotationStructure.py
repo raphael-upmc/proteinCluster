@@ -235,7 +235,7 @@ class DatasetAnnotation:
 
             if self.orfList[orfName].signalp != None :
                 sys.exit(orfName+" already have signalP prediction!")
-            if result == "Y" :
+            if result != "OTHER" :
                 self.orfList[orfName].signalp = True
             else :
                 self.orfList[orfName].signalp = False
@@ -271,7 +271,7 @@ class DatasetAnnotation:
 
     def addingKEGG(self,filename):
         ko2kegg = dict()        
-        json_filename = '/data7/proteinfams/3.6k.PF/annotation/keggHMM/ko00000.json'
+        json_filename = '/groups/banfield/projects/multienv/proteinfams/cpr/CPR_proteinClustering/annotation/keggHMM/ko00000.json'
 
         with open(json_filename) as f:
             data = json.load(f)
@@ -350,7 +350,7 @@ class DatasetAnnotation:
 
         print("\treading Pfam info...")
         pfamAccession2pfamObject = dict()
-        info_filename = "/data7/proteinfams/PFAM/Pfam-A.clans.tsv"
+        info_filename = "/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/PFAM/Pfam-A.clans.tsv"
         file = open(info_filename,"r")
         for line in file :
             line = line.rstrip()
