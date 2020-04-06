@@ -49,7 +49,7 @@ if __name__ == "__main__":
     #########################
 
     mafft_filename = directory+'/'+os.path.basename(fasta_filename)+'.mafft'
-    cmd = '/home/meheurap/programs/mafft-7.390-without-extensions/bin/mafft --auto --thread 6 '+fasta_filename+' > '+mafft_filename
+    cmd = '/groups/banfield/users/meheurap/programs/mafft-7.390-without-extensions/bin/mafft --auto --thread 6 '+fasta_filename+' > '+mafft_filename
     print(cmd)
     os.system(cmd)
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     trimal_filename = mafft_filename+'.trimal'
     html_filename = trimal_filename+'.html'
-    cmd = '/home/meheurap/programs/trimal-trimAl/source/trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename #+' -htmlout '+html_filename
+    cmd = '/groups/banfield/users/meheurap/programs/trimal-trimAl/source/trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename #+' -htmlout '+html_filename
     print(cmd)
     os.system(cmd)
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     ############
 
     fasttree_filename = trimal_filename+'.fasttree'
-    cmd = '/home/meheurap/programs/fastTree/FastTree -out '+fasttree_filename+' '+trimal_filename
+    cmd = '/groups/banfield/users/meheurap/programs/fastTree/FastTree -out '+fasttree_filename+' '+trimal_filename
     print(cmd)
     os.system(cmd)
 
