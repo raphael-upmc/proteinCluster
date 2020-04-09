@@ -49,7 +49,7 @@ if __name__ == "__main__":
     #########################
 
     mafft_filename = directory+'/'+os.path.basename(fasta_filename)+'.mafft'
-    cmd = '/groups/banfield/users/meheurap/programs/mafft-7.390-without-extensions/bin/mafft --auto --thread 6 '+fasta_filename+' > '+mafft_filename
+    cmd = '/shared/software/bin/mafft --auto --thread 6 '+fasta_filename+' > '+mafft_filename
     print(cmd)
     os.system(cmd)
 

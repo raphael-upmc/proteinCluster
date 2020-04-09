@@ -21,7 +21,7 @@ class Pfam :
         
 def readingPfamDescription():
     pfamAccession2pfamObject = dict()
-    info_filename = "/data7/proteinfams/PFAM/Pfam-A.clans.tsv"
+    info_filename = "/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/PFAM/Pfam-A.clans.tsv"
     file = open(info_filename,"r")
     for line in file :
         line = line.rstrip()
@@ -115,7 +115,7 @@ def readingHhrFile(hhr_filename,hhblits_database_basename,accession2desc) :
 
 def runningHhblits(hhm_filename,hhblits_database,hhr_filename) :
     basename = os.path.basename(hhm_filename).split('.')[0]
-    cmd = '/home/meheurap/programs/hhsuite-3.0-beta.3-Linux/bin/hhblits -i '+hhm_filename+' -o '+hhr_filename+' -d '+hhblits_database+'  -v 0 -p 50 -E 0.001 -z 1 -Z 32000 -B 0 -b 0 -n 2 -cpu 1'
+    cmd = '/groups/banfield/users/meheurap/programs/hhsuite-3.0-beta.3-Linux/bin/hhblits -i '+hhm_filename+' -o '+hhr_filename+' -d '+hhblits_database+'  -v 0 -p 50 -E 0.001 -z 1 -Z 32000 -B 0 -b 0 -n 2 -cpu 1'
     status = os.system(cmd)
     if status == 0 :
         return basename,True
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         hhblits_database_basename = os.path.basename(hhblits_database)
         
         
-#    hhblits_database = '/data7/proteinfams/HHpred/pfam'
+#    hhblits_database = '/groups/banfield/projects/multienv/proteinfams/HHpred_db/pfam'
 
     if args.hhr_directory == None :
         hhr_directory = cwd+'/'+'hhr_results'
@@ -180,6 +180,12 @@ if __name__ == "__main__":
     for root, dirs, files in os.walk(hhm_directory):
         for filename in files :
             cpt += 1
+
+            subfamily = filename.replace('.hhm','')
+
+            if subfamily not in data['clusters'] :
+                continue
+            print(subfamily)            
             hhm_filename = root+'/'+filename
             hhm_basename = os.path.basename(hhm_filename).split('.')[0]
 
@@ -241,7 +247,7 @@ if __name__ == "__main__":
                 continue
         file.close()
     elif hhblits_database_basename == 'arCOG' :
-        desc_filename = '/data7/proteinfams/HHpred/arCOG_2157_annotations.tsv'
+        desc_filename = '/groups/banfield/projects/multienv/proteinfams/HHpred_db/arCOG_2157_annotations.tsv'
         file = open(desc_filename,'r')
         for line in file :
             line = line.rstrip()
