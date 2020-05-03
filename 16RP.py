@@ -60,7 +60,7 @@ def running16RP(genome,cpt,cwd,seqList):
     fasta_filename = cwd+'/'+genome+'.faa'
     result_filename = cwd+'/'+genome+'.tsv'
     SeqIO.write(seqList,fasta_filename,'fasta')
-    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /groups/banfield/db/ribosomal_proteins/hug/r04_11_2016 -t 1 "+"1>"+result_filename #+" 2>/dev/null"
+    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /shared/db/ribosomal_proteins/hug/r04_11_2016 -t 1 "+"1>"+result_filename+" 2>>"+cwd+'/rp16.error'
     print(cmd)
     status = os.system(cmd)
     print(str(cpt)+'\t'+genome+'\t'+str(status))
@@ -89,7 +89,7 @@ def running16RP(genome,cpt,cwd,seqList):
 
 def running16RP_low_memory(genome,cpt,cwd,fasta_filename):
     result_filename = cwd+'/'+str(cpt)+'.tsv'
-    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /groups/banfield/db/ribosomal_proteins/hug/r04_11_2016 -t 1 "+"1>"+result_filename+" 2>/dev/null"
+    cmd = "/home/meheurap/.pyenv/shims/rp16.py -f "+fasta_filename+" -d /shared/db/ribosomal_proteins/hug/r04_11_2016 -t 1 "+"1>"+result_filename+" 2>/dev/null"
     status = os.system(cmd)
     #print(str(cpt)+'\t'+genome+'\t'+str(status))
 
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         print(len(genomeSet))
         
         bin2genomeSet = defaultdict(set)
-        nb = 3000
+        nb = 4500
         print(nb)
         cpt_bin = 0
         cpt_genome = 0
@@ -256,7 +256,8 @@ if __name__ == "__main__":
                     error += 1
                 else:
                     for line in positionResult :
-                        output.write(line)
+                        line = line.rstrip()
+                        output.write(line+'\n')
                         liste = line.split('\t')
                         del(liste[0])
                         for orf in liste :
@@ -265,7 +266,9 @@ if __name__ == "__main__":
                             else:
                                 orfSet.add(orf)
         output.close()
+        print(len(orfSet))
 
+        
         if error != 0 :
             print('\n'+str(error)+' genomes failed to run 16RP.py\n')
         print('done')            
@@ -279,7 +282,7 @@ if __name__ == "__main__":
             if orf in orfSet :
                 orf2bin[ orf ] = genome
         file.close()
-
+        print(len(orf2bin))
         genome2seqList = defaultdict(list)
         orf2seq = dict()
         for record in SeqIO.parse(protein_filename,'fasta') :                
@@ -287,8 +290,8 @@ if __name__ == "__main__":
                 genome = orf2bin[ record.id ]
                 genome2seqList[ genome ].append( record )
                 orf2seq[record.id] = record
-        
-    
+        print(len(orf2seq))
+
     else:
         genomeSet = set()
         orf2bin = dict()
