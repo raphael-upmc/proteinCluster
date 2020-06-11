@@ -47,14 +47,14 @@ if __name__ == "__main__":
         sys.exit(args.hmmsearch_filename+' does not exist, exit')
 
     
-    kegg_filename = '/data7/proteinfams/keggHMM/20150610/ggTables/ko_name_def.tsv'
-    ko2pathway_filename = '/data7/proteinfams/keggHMM/20150610/ko_pathway_modules.flat.filtered.tab'
-    ko2desc_filename = '/data7/proteinfams/keggHMM/20150610/ko_name_def.tab'
+    kegg_filename = '/groups/banfield/projects/multienv/proteinfams/duduKeggHmm/20150610/ggTables/ko_name_def.tsv'
+    ko2pathway_filename = '/groups/banfield/projects/multienv/proteinfams/duduKeggHmm/20150610/ko_pathway_modules.flat.filtered.tab'
+    ko2desc_filename = '/groups/banfield/projects/multienv/proteinfams/duduKeggHmm/20150610/ko_name_def.tab'
 
     hmm2nc = dict()
     hmm2length = dict()
     hmm2sd = dict()
-    info_filename = '/data7/proteinfams/keggHMM/20150610/ko.gCluster.hmm.thresholds.len_mean_sd.tab'
+    info_filename = '/groups/banfield/projects/multienv/proteinfams/duduKeggHmm/20150610/ko.gCluster.hmm.thresholds.len_mean_sd.tab'
     file = open(info_filename,'r')
     for line in file :
         line = line.rstrip()
