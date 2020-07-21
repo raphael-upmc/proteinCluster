@@ -121,20 +121,18 @@ def readingAccessionList(filename) :
 
 def readingGtdb() :
     accession2gtdb = dict()
-    bacteria_filename = '/home/meheurap/scripts/proteinCluster/bac120_metadata.tsv'
-    file = open(bacteria_filename,'r')
-    #header = next(file)
-    for line in file :
-        line = line.rstrip()
-        liste = line.split('\t')
-        # print(liste)
-        accession = liste[54]
-        lineage_16S = liste[37]
-        lineage_gtdb = liste[16]
-        lineage_ncbi = liste[78]
-        #print(accession+'\t'+lineage_ncbi+'\t'+lineage_gtdb)
-        accession2gtdb[ accession ] = lineage_gtdb
-    file.close()
+    filenameList = ['/home/meheurap/scripts/proteinCluster/bac120_metadata.tsv','/home/meheurap/scripts/proteinCluster/ar122_metadata_r95.tsv']
+    for filename in filenameList :
+        file = open(bacteria_filename,'r')
+        for line in file :
+            line = line.rstrip()
+            liste = line.split('\t')
+            accession = liste[54]
+            lineage_16S = liste[37]
+            lineage_gtdb = liste[16]
+            lineage_ncbi = liste[78]
+            accession2gtdb[ accession ] = lineage_gtdb
+        file.close()
     return accession2gtdb
 
 

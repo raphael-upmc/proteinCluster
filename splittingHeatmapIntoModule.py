@@ -57,7 +57,7 @@ class Community:
                     output.write("\t"+"0")
             output.write("\n")
         output.close()
-        cmd = "/home/meheurap/script/lowMemoryHeatmap.r "+matrix_filename+" "+image_filename+" "+genomeOrder_filename+" "+familyOrder_filename #+" 2>/dev/null"
+        cmd = "/home/meheurap/scripts/proteinCluster/lowMemoryHeatmap.r "+matrix_filename+" "+image_filename+" "+genomeOrder_filename+" "+familyOrder_filename #+" 2>/dev/null"
         os.system(cmd)
         os.remove(matrix_filename)
 
@@ -75,7 +75,7 @@ class Community:
             output.write("\n")
         output.close()
 
-        cmd = "/home/meheurap/script/heatmap.R "+submatrix_filename+" "+image_filename #+" 2>/dev/null"
+        cmd = "/home/meheurap/scripts/proteinCluster/heatmap.R "+submatrix_filename+" "+image_filename #+" 2>/dev/null"
         os.system(cmd)
         print(cmd)
 
