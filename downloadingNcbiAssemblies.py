@@ -121,9 +121,9 @@ def readingAccessionList(filename) :
 
 def readingGtdb() :
     accession2gtdb = dict()
-    filenameList = ['/home/meheurap/scripts/proteinCluster/bac120_metadata.tsv','/home/meheurap/scripts/proteinCluster/ar122_metadata_r95.tsv']
+    filenameList = ['/home/meheurap/scripts/proteinCluster/bac120_metadata_r95.tsv','/home/meheurap/scripts/proteinCluster/ar122_metadata_r95.tsv']
     for filename in filenameList :
-        file = open(bacteria_filename,'r')
+        file = open(filename,'r')
         for line in file :
             line = line.rstrip()
             liste = line.split('\t')
