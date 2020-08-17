@@ -5,15 +5,16 @@ from Bio import SeqIO
 from collections import defaultdict
 from operator import itemgetter
 
-feature_filename = '/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/ncbiGenomeDbComprehensive20171212.feature'
+feature_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/gtdb_31k_genomes.feature'
+
 pfamSet = {'PF04205' : 'Fmn_Bind (pplA)','PF02424':'ApbE (fmnB)', 'PF13486' : 'PceA (PF13486)' , 'PF01794' : 'Ferric_reduct (PF01794)' , 'PF10029' : 'DUF2271 (PF10029)' , 'PF12094' : 'DUF3570 (PF12094)', 'PF16357' : 'PepSY_TM_like_2 (PF16357)' , 'PF03929' : 'PepSY_TM (PF03929)' , 'PF12801' : 'Fer4_5 (PF12801)' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' : 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)'}
-keggSet = {'K00351':'NqrF (K00351)', 'K03616':'RnfB (K03616)','K00376':'NosZ (K00376)','K19339':'NosR (K19339)','K03885' : 'ndh (K03885)', 'K04084' : 'dsbD (K04084)'}
+keggSet = {'K00351':'K00351 (Na+-transporting NADH:ubiquinone oxidoreductase subunit F [EC:7.2.1.1])', 'K03616':'K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])','K00376':'K00376 (nitrous-oxide reductase [EC:1.7.2.4])','K19339':'K19339 (NosR/NirI family transcriptional regulator, nitrous oxide reductase regulator)','K03885' : 'K03885 (NADH dehydrogenase [EC:1.6.99.3])', 'K04084' : 'K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])'}
 
 system2annot = {
 
     'Nos' : [
-        set(['NosZ (K00376)','ApbE (fmnB)']) ,
-        set(['NosZ (K00376)','Fmn_Bind (pplA)']) ] ,
+        set(['K00376 (nitrous-oxide reductase [EC:1.7.2.4])','ApbE (fmnB)']) ,
+        set(['K00376 (nitrous-oxide reductase [EC:1.7.2.4])','Fmn_Bind (pplA)']) ] ,
 
     'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' : [
         set(['NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)']) ] ,
@@ -22,23 +23,23 @@ system2annot = {
     'Fer4_5' : [
         set(['Fer4_5 (PF12801)','ApbE (fmnB)']) ,
         set(['Fer4_5 (PF12801)','Fmn_Bind (pplA)']) ,
-        set(['NosR (K19339)','ApbE (fmnB)']) ,
-        set(['NosR (K19339)','Fmn_Bind (pplA)']) ],
+        set(['K19339 (NosR/NirI family transcriptional regulator, nitrous oxide reductase regulator)','ApbE (fmnB)']) ,
+        set(['K19339 (NosR/NirI family transcriptional regulator, nitrous oxide reductase regulator)','Fmn_Bind (pplA)']) ],
         
     'Rnf' : [
-        set(['Fmn_Bind (pplA)','RnfB (K03616)']) ,
-        set(['ApbE (fmnB)','RnfB (K03616)']) ] ,
+        set(['Fmn_Bind (pplA)','K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])']) ,
+        set(['ApbE (fmnB)','K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])']) ] ,
     
     'NQR' : [
-        set(['NqrF (K00351)','Fmn_Bind (pplA)']) ,
-        set(['NqrF (K00351)','ApbE (fmnB)']) ] ,
+        set(['K00351 (Na+-transporting NADH:ubiquinone oxidoreductase subunit F [EC:7.2.1.1])','Fmn_Bind (pplA)']) ,
+        set(['K00351 (Na+-transporting NADH:ubiquinone oxidoreductase subunit F [EC:7.2.1.1])','ApbE (fmnB)']) ] ,
     
     'OrganohalideReductase' :  [
         set(['PceA (PF13486)','ApbE (fmnB)']) ,
         set(['PceA (PF13486)','Fmn_Bind (pplA)']) ] ,
     'EET' : [
-        set(['ndh (K03885)','Fmn_Bind (pplA)']) ,
-        set(['ndh (K03885)','ApbE (fmnB)']) ] ,
+        set(['K03885 (NADH dehydrogenase [EC:1.6.99.3])','Fmn_Bind (pplA)']) ,
+        set(['K03885 (NADH dehydrogenase [EC:1.6.99.3])','ApbE (fmnB)']) ] ,
 
     'Ferric_reduct (PF01794)' : [
         set(['Ferric_reduct (PF01794)','Fmn_Bind (pplA)']) ,
@@ -47,10 +48,10 @@ system2annot = {
         set(['Ferric_reduct (PF01794)','DUF3570 (PF12094)']) ] ,
 
     'dsbD' : [
-        set(['dsbD (K04084)','Fmn_Bind (pplA)']) ,
-        set(['dsbD (K04084)','ApbE (fmnB)']) ,
-        set(['dsbD (K04084)','DUF2271 (PF10029)']) ,
-        set(['dsbD (K04084)','DUF3570 (PF12094)']) ] ,
+        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','Fmn_Bind (pplA)']) ,
+        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','ApbE (fmnB)']) ,
+        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','DUF2271 (PF10029)']) ,
+        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','DUF3570 (PF12094)']) ] ,
     
     'PepSY' : [
         set(['PepSY_TM (PF03929)','Fmn_Bind (pplA)']) ,
@@ -73,42 +74,52 @@ orf2desc = defaultdict(set) # cases of fusion or multidomain
 # SIGNALP #
 ###########
 
+directory = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/SignalP'
 orf2signalp = dict()
-signalp_filename = '/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/ncbiGenomeDbComprehensive20171212.fa.signalp'
-file = open(signalp_filename,'r')
-for line in file :
-    line = line.rstrip()
-    orf,signalp = line.split('\t')
-    orf2signalp[orf] = signalp
-file.close()
+
+for root, dirs, files in os.walk(directory):
+    for filename in files :
+        signalp_filename = root+'/'+filename
+        file = open(signalp_filename,'r')
+        for line in file :
+            line = line.rstrip()
+            orf,signalp = line.split('\t')
+            orf2signalp[orf] = signalp
+        file.close()
 
 #########
 # TMHMM #
 #########
-
+directory = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/TMHMM'
 orf2tmhmm = dict()
-tmhmm_filename = '/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/ncbiGenomeDbComprehensive20171212.fa.tmhmm'
-file = open(tmhmm_filename,'r')
-for line in file :
-    line = line.rstrip()
-    liste = line.split('\t')
-    orf = liste[0]
-    tmhmm = int(liste[4].replace('PredHel=',''))
-    orf2tmhmm[orf] = tmhmm
-file.close()
+
+for root, dirs, files in os.walk(directory):
+    for filename in files :
+        tmhmm_filename = root+'/'+filename
+        file = open(tmhmm_filename,'r')
+        for line in file :
+            line = line.rstrip()
+            liste = line.split('\t')
+            orf = liste[0]
+            tmhmm = int(liste[4].replace('PredHel=',''))
+            orf2tmhmm[orf] = tmhmm
+        file.close()
 
 ########
 # PFAM #
 ########
 
-pfam_filename = '/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/PFAM/ncbiGenomeDbComprehensive20171212.fa.domtblout.domainHit.dama.removingOverlapping'
+gtdb_directory = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/'
+
+name2pfam = dict()
 pfam2name = dict()
-info_filename = "/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/PFAM/Pfam-A.clans.tsv"
+info_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/Pfam-A.clans.version33.0.tsv'
 file = open(info_filename,"r")
 for line in file :
     line = line.rstrip()
     accession,clanAccession,clanName,name,description = line.split("\t")
     pfam2name[accession] = name
+    name2pfam[name] = pfam
 file.close()
 
 orfSet_PF02424 = set()
@@ -116,16 +127,18 @@ orfSet_PF04205 = set()
 orfSet_PF02683 = set()
 cpt = 0
 orf2pfam = defaultdict(list)
+pfam_filename = gtdb)directory+'/'+'gtdb2Pfam-A-version33.0.result'
 file = open(pfam_filename,"r")
 for line in file :
     line = line.rstrip()
+    if re.match(r'#',line) :
+        continue
     liste = line.split()
     orfName = liste[0]
-    pfamAccession = liste[1]
-
+    pfamName = liste[1]
+    pfamAccession = name2pfam[pfamName]
     if pfamAccession == 'PF02683' :
         orfSet_PF02683.add(orfName)
-
 
     if pfamAccession in pfamSet :
         orf2desc[orfName].add(pfamSet[pfamAccession])
@@ -136,10 +149,8 @@ for line in file :
     if pfamAccession == 'PF04205' :
         orfSet_PF04205.add(orfName)
 
-    start = liste[2]
-    
-    end = liste[3]
-    cEvalue = liste[4] # conditional Evalue
+    start,end = liste[2].split('-')
+    cEvalue = liste[5] # conditional Evalue
     orf2pfam[orfName].append( ( int(start) , int(end) , pfamAccession , pfam2name[pfamAccession], cEvalue ) )
 file.close()
 
@@ -161,26 +172,25 @@ for orf,liste in orf2pfam.items() :
 ########
 
 keggAccession2keggObject = dict()
-filename = "/groups/banfield/projects/multienv/proteinfams/cpr/CPR_proteinClustering/annotation/keggHMM/kegg.info"
+filename = '/shared/db/kegg/kofam/latest/metadata/ko_list'
 file = open(filename,"r")
 for line in file :
     line = line.rstrip()
-    accession,description,bigCategory,category,pathway = line.split("\t")
-    liste = description.split(';')    
-    name = liste[0].rstrip()
-    description = ''.join(liste[1:]).rstrip()
-    keggAccession2keggObject[accession] = name+' ('+accession+') '
+    liste = line.split("\t")
+    accession = liste[0]
+    description = liste[-1]
+    keggAccession2keggObject[accession] = accession+' ('+description+') '
 file.close()    
 
 orf2kegg = dict()
-kegg_filename = '/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/ncbiGenomeDbComprehensive20171212.fa.kegg'
+kegg_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/'+'gtdb2KEGG-A-version33.0.result'
 file = open(kegg_filename,'r')
 next(file)
 for line in file :
     line = line.rstrip()
     liste = line.split('\t')
     orf = liste[0]
-    accession = liste[1].split('.')[0]
+    accession = liste[1]
     if accession not in keggAccession2keggObject :
         orf2kegg[orf] = accession
     else:
@@ -199,35 +209,17 @@ file.close()
 print('kegg: '+str(len(orf2kegg)))
 
 bin2taxonomy = dict()
-filename = "/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/ncbiGenomeDbComprehensive20171212.txt"
+filename = '/shared/db/gtdb/latest/taxonomy/gtdb_taxonomy.tsv'
 file = open(filename,"r")
 for line in file :
     line = line.rstrip()
-    genome,asm,taxId,ncbiTaxonomy = line.split("\t")
-    bin2taxonomy[ asm ] = ncbiTaxonomy
+    genomeAccession,taxonomy = line.split("\t")
+    bin2taxonomy[ genomeAccession ] = taxonomy
 file.close()
-
-# bin2shortTaxonomy = dict()
-# filename = "/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/taxonomy/bin2taxonomy.txt"
-# file = open(filename,"r")
-# next(file)
-# for line in file :
-#     line = line.rstrip()
-#     genome,ncbiTaxonomy,normalizedTaxonomy = line.split("\t")
-#     genome = genome.rstrip()
-#     asm = bin2asm[ genome ]
-#     liste = normalizedTaxonomy.split(',')
-#     if liste[-3] == 'CPR' :
-#         bin2shortTaxonomy[ asm ] = 'CPR'
-#     elif liste[-2] == 'Archaea' :
-#         bin2shortTaxonomy[ asm ] = 'Archaea'
-#     else:
-#         bin2shortTaxonomy[ asm ] = liste[0]
-# file.close()
 
 annot2seqList =  defaultdict(list)
 seq2len = dict()
-fasta_filename = '/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/ncbiGenomeDbComprehensive20171212.fa'
+fasta_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/gtdb_31k_genomes.faa'
 for record in SeqIO.parse(fasta_filename,'fasta') :
     seq2len[record.id] = len(record)
     if record.id in orfSet_PF02424 :
@@ -461,25 +453,12 @@ for system,liste in system2genomes.items() :
 
 
 
-
-asm2genome = dict()
-bin2taxonomy = dict()
-filename = "/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/ncbiGenomeDbComprehensive20171212.txt"
-file = open(filename,"r")
-for line in file :
-    line = line.rstrip()
-    genome,asm,taxId,ncbiTaxonomy = line.split("\t")
-    bin2taxonomy[ asm ] = ncbiTaxonomy
-    asm2genome[ asm ] = genome.replace(' ','_')
-file.close()
-    
-
 systemList = ['Rnf','NQR','Nos','EET','OrganohalideReductase', 'Ferric_reduct (PF01794)' , 'PepSY' , 'dsbD' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' , 'Fer4_5' ]
 
 output = open('genome2systems.matrix','w')
 output.write('\t'+'\t'.join(systemList)+'\n')
 for asm,liste in genome2systems.items() :
-    line = asm2genome[asm]
+    line = asm
     for system in systemList :
         if system in liste :
             line += '\t'+'1'
