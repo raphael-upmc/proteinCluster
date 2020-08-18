@@ -4,6 +4,10 @@ import os,re,sys
 from Bio import SeqIO
 from collections import defaultdict
 from operator import itemgetter
+from ete3 import Tree
+
+print(re.escape("ApbE (fmnB)"))
+print(re.escape("Fmn_Bind (pplA)"))
 
 feature_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/gtdb_31k_genomes.feature'
 
@@ -73,7 +77,7 @@ orf2desc = defaultdict(set) # cases of fusion or multidomain
 ###########
 # SIGNALP #
 ###########
-
+print('reading signalp....')
 directory = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/SignalP'
 orf2signalp = dict()
 
@@ -83,13 +87,18 @@ for root, dirs, files in os.walk(directory):
         file = open(signalp_filename,'r')
         for line in file :
             line = line.rstrip()
-            orf,signalp = line.split('\t')
+            if re.match('#',line) :
+                continue
+            liste = line.split('\t')
+            orf = liste[0]
+            signalp = liste[1]
             orf2signalp[orf] = signalp
         file.close()
 
 #########
 # TMHMM #
 #########
+print('reading tmhmm....')
 directory = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/TMHMM'
 orf2tmhmm = dict()
 
@@ -108,7 +117,7 @@ for root, dirs, files in os.walk(directory):
 ########
 # PFAM #
 ########
-
+print('reading pfam....')
 gtdb_directory = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/'
 
 name2pfam = dict()
@@ -119,7 +128,7 @@ for line in file :
     line = line.rstrip()
     accession,clanAccession,clanName,name,description = line.split("\t")
     pfam2name[accession] = name
-    name2pfam[name] = pfam
+    name2pfam[name] = accession
 file.close()
 
 orfSet_PF02424 = set()
@@ -127,7 +136,7 @@ orfSet_PF04205 = set()
 orfSet_PF02683 = set()
 cpt = 0
 orf2pfam = defaultdict(list)
-pfam_filename = gtdb)directory+'/'+'gtdb2Pfam-A-version33.0.result'
+pfam_filename = gtdb_directory+'/'+'gtdb2Pfam-A-version33.0.result'
 file = open(pfam_filename,"r")
 for line in file :
     line = line.rstrip()
@@ -149,7 +158,7 @@ for line in file :
     if pfamAccession == 'PF04205' :
         orfSet_PF04205.add(orfName)
 
-    start,end = liste[2].split('-')
+    start,end = liste[3].split('-')
     cEvalue = liste[5] # conditional Evalue
     orf2pfam[orfName].append( ( int(start) , int(end) , pfamAccession , pfam2name[pfamAccession], cEvalue ) )
 file.close()
@@ -170,7 +179,7 @@ for orf,liste in orf2pfam.items() :
 ########
 # KEGG #
 ########
-
+print('reading kegg....')
 keggAccession2keggObject = dict()
 filename = '/shared/db/kegg/kofam/latest/metadata/ko_list'
 file = open(filename,"r")
@@ -188,7 +197,9 @@ file = open(kegg_filename,'r')
 next(file)
 for line in file :
     line = line.rstrip()
-    liste = line.split('\t')
+    if re.match('#',line) :
+        continue
+    liste = line.split()
     orf = liste[0]
     accession = liste[1]
     if accession not in keggAccession2keggObject :
@@ -208,6 +219,7 @@ for line in file :
 file.close()
 print('kegg: '+str(len(orf2kegg)))
 
+print('reading gtdb taxonomy....')
 bin2taxonomy = dict()
 filename = '/shared/db/gtdb/latest/taxonomy/gtdb_taxonomy.tsv'
 file = open(filename,"r")
@@ -217,6 +229,7 @@ for line in file :
     bin2taxonomy[ genomeAccession ] = taxonomy
 file.close()
 
+print('reading fasta file....')
 annot2seqList =  defaultdict(list)
 seq2len = dict()
 fasta_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/gtdb_31k_genomes.faa'
@@ -348,7 +361,7 @@ for genome,scaffold2nb2annot in genome2scaffold2nb2annot.items() :
 
                     j += 1
 
-                print(orf+'\t'+str(annotSet))
+                #print(orf+'\t'+str(annotSet))
                 for system,annotList in system2annot.items() :
                     for liste in annotList :
                         if liste.issubset(annotSet) and len(orf2desc[orf].intersection(liste)) > 0 : # check if current orf has the right annotation
@@ -395,9 +408,10 @@ for genome,scaffold2nb2annot in genome2scaffold2nb2annot.items() :
             
             if orf in orf2desc :
                 desc = ','.join( list(orf2desc[orf]) )
-                if re.search(r'ApbE (fmnB)',desc) :
+#                print(orf+'\t'+desc)
+                if re.search(r'ApbE\ \(fmnB\)',desc) :
                     output2.write(orf+'\t'+system+'\n')
-                if re.search(r'Fmn_Bind (pplA)',desc) :
+                if re.search(r'Fmn_Bind\ \(pplA\)',desc) :
                     output2.write(orf+'\t'+system+'\n')
             else:
                 desc = '-'
@@ -446,8 +460,8 @@ output.close()
 output2.close()
 
 
-for system,liste in system2genomes.items() :
-    print(system+'\t'+str(len(liste)))
+# for system,liste in system2genomes.items() :
+#     print(system+'\t'+str(len(liste)))
 
 
 
@@ -466,3 +480,29 @@ for asm,liste in genome2systems.items() :
             line += '\t'+'0'
     output.write(line+'\n')
 file.close()
+
+
+otuSet = set()
+tree_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/gtdb_genus_genomes.16RP.aln.treefile'
+t = Tree(tree_filename)
+for leaf in t:
+    #print(leaf.name)
+    otuSet.add(leaf.name)
+
+
+output = open('genome2systems_genera.matrix','w')
+output.write('\t'+'\t'.join(systemList)+'\n')
+for asm,liste in genome2systems.items() :
+    if asm not in otuSet :
+        continue
+    line = asm
+    for system in systemList :
+        if system in liste :
+            line += '\t'+'1'
+        else:
+            line += '\t'+'0'
+    output.write(line+'\n')
+file.close()
+
+
+
