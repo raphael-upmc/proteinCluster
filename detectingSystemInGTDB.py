@@ -74,6 +74,21 @@ system2annot = {
 
 orf2desc = defaultdict(set) # cases of fusion or multidomain
 
+#################
+# gtdb taxonomy #
+#################
+
+print('reading gtdb taxonomy....')
+bin2taxonomy = dict()
+filename = '/shared/db/gtdb/latest/taxonomy/gtdb_taxonomy.tsv'
+file = open(filename,"r")
+for line in file :
+    line = line.rstrip()
+    genomeAccession,taxonomy = line.split("\t")
+    bin2taxonomy[ genomeAccession ] = taxonomy
+file.close()
+
+
 ###########
 # SIGNALP #
 ###########
@@ -131,6 +146,8 @@ for line in file :
     name2pfam[name] = accession
 file.close()
 
+
+
 orfSet_PF02424 = set()
 orfSet_PF04205 = set()
 orfSet_PF02683 = set()
@@ -150,8 +167,12 @@ for line in file :
         orfSet_PF02683.add(orfName)
 
     if pfamAccession in pfamSet :
-        orf2desc[orfName].add(pfamSet[pfamAccession])
-
+        if pfamAccession == 'PF04205' or pfamAccession == 'PF02424' :
+            if orf2signalp[orfName] != 'OTHER' : # check in apbe or fmn_bind have a signal peptide
+                orf2desc[orfName].add(pfamSet[pfamAccession])
+        else :
+            orf2desc[orfName].add(pfamSet[pfamAccession])
+            
     if pfamAccession == 'PF02424' :
         orfSet_PF02424.add(orfName)
 
@@ -171,7 +192,7 @@ for orf,liste in orf2pfam.items() :
 
         #print(architecture)
     orf2pfamArchitecture[orf] = " + ".join(architecture)
-    if orf2pfamArchitecture[orf] in pfamSet : # fusion
+    if orf2pfamArchitecture[orf] in pfamSet :# fusion
         orf2desc[orf].add(pfamSet[ orf2pfamArchitecture[orf] ])
 
 
@@ -179,6 +200,9 @@ for orf,liste in orf2pfam.items() :
 ########
 # KEGG #
 ########
+
+# problem with fusion !
+
 print('reading kegg....')
 keggAccession2keggObject = dict()
 filename = '/shared/db/kegg/kofam/latest/metadata/ko_list'
@@ -219,15 +243,6 @@ for line in file :
 file.close()
 print('kegg: '+str(len(orf2kegg)))
 
-print('reading gtdb taxonomy....')
-bin2taxonomy = dict()
-filename = '/shared/db/gtdb/latest/taxonomy/gtdb_taxonomy.tsv'
-file = open(filename,"r")
-for line in file :
-    line = line.rstrip()
-    genomeAccession,taxonomy = line.split("\t")
-    bin2taxonomy[ genomeAccession ] = taxonomy
-file.close()
 
 print('reading fasta file....')
 annot2seqList =  defaultdict(list)
@@ -290,9 +305,9 @@ for line in file :
 file.close()
 
 
-#############################
-# detecting the RNF and NqR #
-#############################
+#########################
+# detecting the systems #
+#########################
 
 genome2systems = defaultdict(set)
 orfFinalSet = set()
@@ -460,8 +475,8 @@ output.close()
 output2.close()
 
 
-# for system,liste in system2genomes.items() :
-#     print(system+'\t'+str(len(liste)))
+for system,liste in system2genomes.items() :
+    print(system+'\t'+str(len(liste)))
 
 
 
