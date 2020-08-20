@@ -204,7 +204,7 @@ for orf,liste in orf2pfam.items() :
 # problem with fusion !
 
 print('reading kegg....')
-keggAccession2keggObject = dict()
+accession2keggDescription = dict()
 filename = '/shared/db/kegg/kofam/latest/metadata/ko_list'
 file = open(filename,"r")
 for line in file :
@@ -212,10 +212,10 @@ for line in file :
     liste = line.split("\t")
     accession = liste[0]
     description = liste[-1]
-    keggAccession2keggObject[accession] = accession+' ('+description+') '
+    accession2keggDescription[accession] = description
 file.close()    
 
-orf2kegg = dict()
+orf2kegg = defaultdict(list)
 kegg_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/'+'gtdb2KEGG-A-version33.0.result'
 file = open(kegg_filename,'r')
 next(file)
@@ -227,21 +227,34 @@ for line in file :
     orf = liste[0]
     accession = liste[1]
     if accession not in keggAccession2keggObject :
-        orf2kegg[orf] = accession
+        description =  accession
     else:
-        orf2kegg[orf] = keggAccession2keggObject[accession]
+        description = accession2keggDescription[accession]
 
-    if accession in keggSet :
-        if accession == 'K03885' : # nad from EET ==> check if 1 transmembrane helix
+    start,end = liste[3].split('-')
+    cEvalue = liste[5] # conditional Evalue
+    orf2kegg[orfName].append( ( int(start) , int(end) , accession , description , cEvalue ) )
+    if accession  in keggSet :# fusion
+        if accession == 'K03885' : # particular case, nad from EET ==> check if 1 transmembrane helix
             if orf2tmhmm[ orf ] > 0 :
                 orf2desc[orf].add(keggSet[accession])
-                #print(orf+'\t'+str(orf2tmhmm[orf]))
         else:
-            orf2desc[orf].add(keggSet[accession])
-            #print(orf+'\t'+keggSet[accession])
-        
+            orf2desc[orf].add(keggSet[ accession ])
+
 file.close()
 print('kegg: '+str(len(orf2kegg)))
+
+
+orf2keggArchitecture = dict()
+for orf,liste in orf2kegg.items() :
+    architecture = list()
+    for domainInfoList in sorted( liste ,key=itemgetter(0,1) ) :
+        architecture.append(domainInfoList[3]+" ("+domainInfoList[2]+")")
+
+        #print(architecture)
+    orf2keggArchitecture[orf] = " + ".join(architecture)
+    if orf2keggArchitecture[orf] in keggSet :# fusion
+        orf2desc[orf].add(keggSet[ orf2keggArchitecture[orf] ])
 
 
 print('reading fasta file....')
@@ -326,8 +339,8 @@ for genome,scaffold2nb2annot in genome2scaffold2nb2annot.items() :
             else:
                 pfam = 'Na'
 
-            if orf in orf2kegg :
-                kegg = orf2kegg[orf]
+            if orf in orf2keggArchitecture :
+                kegg = orf2keggArchitecture[orf]
             else:
                 kegg = 'Na'
 
@@ -436,8 +449,8 @@ for genome,scaffold2nb2annot in genome2scaffold2nb2annot.items() :
             else:
                 pfam = 'Na'
 
-            if orf in orf2kegg :
-                kegg = orf2kegg[orf]
+            if orf in orf2keggArchitecture :
+                kegg = orf2keggArchitecture[orf]
             else:
                 kegg = 'Na'
 
