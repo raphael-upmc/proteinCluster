@@ -90,7 +90,8 @@ class Family :
         keggDescription = sorted(annot2count["keggDescription"].items(),key=itemgetter(1),reverse=True)[0]
         keggDescription = keggDescription[0]+" ("+str( format( float(keggDescription[1])/float(len(self)) , '.2f' ) )+")"
 
-        result = self.name+"\t"+str(int(len(self)))+"\t"+str(int(np.median(annot2count["sequenceLength"])))+"\t"+str(format( float(annot2count["signalP"])/float(len(self)) , '.2f'))+"\t"+str(int(np.median(annot2count["TMHMM"])))+"\t"+psort+"\t"+pfam+"\t"+keggAccession+"\t"+keggDescription+'\t'+keggPathway+"\t"+keggCategory+"\t"+keggBigCategory+"\t"+cazy
+        # result = self.name+"\t"+str(int(len(self)))+"\t"+str(int(np.median(annot2count["sequenceLength"])))+"\t"+str(format( float(annot2count["signalP"])/float(len(self)) , '.2f'))+"\t"+str(int(np.median(annot2count["TMHMM"])))+"\t"+psort+"\t"+pfam+"\t"+keggAccession+"\t"+keggDescription+'\t'+keggPathway+"\t"+keggCategory+"\t"+keggBigCategory+"\t"+cazy
+        result = self.name+"\t"+str(int(len(self)))+"\t"+str(int(np.median(annot2count["sequenceLength"])))+"\t"+str(format( float(annot2count["signalP"])/float(len(self)) , '.2f'))+"\t"+str(int(np.median(annot2count["TMHMM"])))+"\t"+psort+"\t"+pfam+"\t"+keggAccession+"\t"+keggDescription+"\t"+cazy
         return result
     
 
@@ -349,56 +350,17 @@ class DatasetAnnotation:
 
     def addingKEGG_v2(self,filename):
         ko2kegg = dict()        
-        json_filename = '/groups/banfield/projects/multienv/proteinfams/cpr/CPR_proteinClustering/annotation/keggHMM/ko00000.json'
-
-        with open(json_filename) as f:
-            data = json.load(f)
-
-        for kegg in data['children'] :
-            keggBigCategory = kegg['name']
-            for kegg1 in kegg['children'] :
-                keggCategory = kegg1['name']
-                for kegg2 in kegg1['children'] :
-                    keggPathway = kegg2['name']
-                    if 'children' in kegg2 :            
-                        for kegg3 in kegg2['children'] :
-                            ko = kegg3['name'].split()[0]
-                            name = kegg3['name'].split('  ')[1].split(';')[0]
-                            description = kegg3['name'].split('  ')[1].split(';')[1].strip()
-                            if ko not in ko2kegg :
-                                ko2kegg[ko] = Kegg(ko,name,description,keggBigCategory,keggCategory,keggPathway)
-                            else:
-                                if ko2kegg[ko].accession != ko :
-                                    ko2kegg[ko].accession = 'Multiple'
-
-                                if ko2kegg[ko].name != name :
-                                    ko2kegg[ko].name = 'Multiple'
-
-                                if ko2kegg[ko].description != description :
-                                    ko2kegg[ko].description = 'Multiple'
-
-                                if ko2kegg[ko].bigCategory != keggBigCategory :
-                                    ko2kegg[ko].bigCategory = 'Multiple'
-                            
-                                if ko2kegg[ko].category != keggCategory :
-                                    ko2kegg[ko].category = 'Multiple'
-
-                                if ko2kegg[ko].pathway != keggPathway :
-                                    ko2kegg[ko].pathway = 'Multiple'
-
-                        
-                    else:
-                        continue
 
         print('reading kegg....')
         koList_filename = '/shared/db/kegg/kofam/latest/metadata/ko_list'
         file = open(koList_filename,"r")
+        header = next(file)
         for line in file :
             line = line.rstrip()
             liste = line.split("\t")
             accession = liste[0]
             description = liste[-1]
-            ko2kegg[accession].description = description
+            ko2kegg[accession] = Kegg(accession,'name',description,'keggBigCategory','keggCategory','keggPathway')
         file.close() 
 
         file = open(filename,'r')
@@ -454,7 +416,7 @@ class DatasetAnnotation:
         for line in file :
             line = line.rstrip()
             accession,clanAccession,clanName,name,description = line.split("\t")
-            pfamAccession2pfamObject[accession] = Pfam(accession,name,clanAccession,clanName,description)
+            pfamAccession2pfamObject[name] = Pfam(accession,name,clanAccession,clanName,description)
         file.close()
 
         print("\treading Pfam filename...")
@@ -462,13 +424,16 @@ class DatasetAnnotation:
         file = open(filename,"r")
         for line in file :
             line = line.rstrip()
+            if re.match('#',line) :
+                continue
             liste = line.split()
             orfName = liste[0]
-            pfamAccession = liste[1]
-            start = liste[2]
-            end = liste[3]
-            cEvalue = liste[4] # conditional Evalue
-            self.orfList[orfName].pfam.append( ( int(start) , int(end) , pfamAccession2pfamObject[pfamAccession] , cEvalue ) )
+            pfamName = liste[1]
+            coord = liste[3].split('-')
+            start = int(coord[0])
+            end = int(coord[1])
+            cEvalue = liste[5] # conditional Evalue
+            self.orfList[orfName].pfam.append( ( int(start) , int(end) , pfamAccession2pfamObject[pfamName] , cEvalue ) )
         file.close()
         
 
@@ -608,7 +573,8 @@ if __name__ == "__main__":
     if args.family2annotation_filename != None :
         print('creating '+family2annotation_filename+'...')
         output = open(family2annotation_filename,"w")
-        output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","psort","Pfam",'keggAccession','keggDescription','keggPathway','keggCategory','keggBigCategory','Cazy'])+"\n")
+#        output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","psort","Pfam",'keggAccession','keggDescription','keggPathway','keggCategory','keggBigCategory','Cazy'])+"\n")
+        output.write("\t".join( ["family","nb","seqLength","signalP","TMHMM","psort","Pfam",'keggAccession','keggDescription','Cazy'])+"\n")
         for family,familyObject in dataset.familyList.items() :
             output.write(familyObject.oneLineAnnotation()+"\n")
         output.close()
