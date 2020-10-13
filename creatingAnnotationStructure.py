@@ -390,8 +390,17 @@ class DatasetAnnotation:
                     else:
                         continue
 
+        print('reading kegg....')
+        koList_filename = '/shared/db/kegg/kofam/latest/metadata/ko_list'
+        file = open(koList_filename,"r")
+        for line in file :
+            line = line.rstrip()
+            liste = line.split("\t")
+            accession = liste[0]
+            description = liste[-1]
+            ko2kegg[accession].description = description
+        file.close() 
 
-        koSet = set()
         file = open(filename,'r')
         header = next(file)
         for line in file :
@@ -402,16 +411,11 @@ class DatasetAnnotation:
             orfName = liste[0]
             KO = liste[1]
             evalue = liste[6]
-
             reliability = 'unknown'
-                
-                    
-            try :
-                self.orfList[orfName].kegg = ( ko2kegg[KO] , evalue , reliability )
-            except :
-                koSet.add(KO)
+
+            self.orfList[orfName].kegg = ( ko2kegg[KO] , evalue , reliability )
         file.close()
-        print(koSet)
+
         
         
     def addingPFAM(self,filename) :
@@ -419,6 +423,33 @@ class DatasetAnnotation:
         print("\treading Pfam info...")
         pfamAccession2pfamObject = dict()
         info_filename = "/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/PFAM/Pfam-A.clans.tsv"
+        file = open(info_filename,"r")
+        for line in file :
+            line = line.rstrip()
+            accession,clanAccession,clanName,name,description = line.split("\t")
+            pfamAccession2pfamObject[accession] = Pfam(accession,name,clanAccession,clanName,description)
+        file.close()
+
+        print("\treading Pfam filename...")
+        cpt = 0
+        file = open(filename,"r")
+        for line in file :
+            line = line.rstrip()
+            liste = line.split()
+            orfName = liste[0]
+            pfamAccession = liste[1]
+            start = liste[2]
+            end = liste[3]
+            cEvalue = liste[4] # conditional Evalue
+            self.orfList[orfName].pfam.append( ( int(start) , int(end) , pfamAccession2pfamObject[pfamAccession] , cEvalue ) )
+        file.close()
+
+
+    def addingPFAM_v2(self,filename) :
+
+        print("\treading Pfam info...")
+        pfamAccession2pfamObject = dict()
+        info_filename = "/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/Pfam-A.clans.version33.0.tsv"
         file = open(info_filename,"r")
         for line in file :
             line = line.rstrip()
@@ -545,7 +576,7 @@ if __name__ == "__main__":
     # if pfam_filename available
     if 'pfam_filename' in data and os.path.exists( data['pfam_filename'] ) :
         print("adding Pfam...")
-        dataset.addingPFAM(data['pfam_filename'])
+        dataset.addingPFAM_v2(data['pfam_filename'])
 
     # if tmhmm_filename available
     if 'tmhmm_filename' in data and os.path.exists( data['tmhmm_filename'] ) :
@@ -560,7 +591,7 @@ if __name__ == "__main__":
     # if kegg_filename available
     if 'kegg_filename' in data and os.path.exists( data['kegg_filename'] ) :
         print("adding KEGG...")
-        dataset.addingKEGG(data['kegg_filename'])
+        dataset.addingKEGG_v2(data['kegg_filename'])
 
 
     # if psort_filename available
