@@ -345,6 +345,74 @@ class DatasetAnnotation:
         file.close()
         print(koSet)
 
+
+
+    def addingKEGG_v2(self,filename):
+        ko2kegg = dict()        
+        json_filename = '/groups/banfield/projects/multienv/proteinfams/cpr/CPR_proteinClustering/annotation/keggHMM/ko00000.json'
+
+        with open(json_filename) as f:
+            data = json.load(f)
+
+        for kegg in data['children'] :
+            keggBigCategory = kegg['name']
+            for kegg1 in kegg['children'] :
+                keggCategory = kegg1['name']
+                for kegg2 in kegg1['children'] :
+                    keggPathway = kegg2['name']
+                    if 'children' in kegg2 :            
+                        for kegg3 in kegg2['children'] :
+                            ko = kegg3['name'].split()[0]
+                            name = kegg3['name'].split('  ')[1].split(';')[0]
+                            description = kegg3['name'].split('  ')[1].split(';')[1].strip()
+                            if ko not in ko2kegg :
+                                ko2kegg[ko] = Kegg(ko,name,description,keggBigCategory,keggCategory,keggPathway)
+                            else:
+                                if ko2kegg[ko].accession != ko :
+                                    ko2kegg[ko].accession = 'Multiple'
+
+                                if ko2kegg[ko].name != name :
+                                    ko2kegg[ko].name = 'Multiple'
+
+                                if ko2kegg[ko].description != description :
+                                    ko2kegg[ko].description = 'Multiple'
+
+                                if ko2kegg[ko].bigCategory != keggBigCategory :
+                                    ko2kegg[ko].bigCategory = 'Multiple'
+                            
+                                if ko2kegg[ko].category != keggCategory :
+                                    ko2kegg[ko].category = 'Multiple'
+
+                                if ko2kegg[ko].pathway != keggPathway :
+                                    ko2kegg[ko].pathway = 'Multiple'
+
+                        
+                    else:
+                        continue
+
+
+        koSet = set()
+        file = open(filename,'r')
+        header = next(file)
+        for line in file :
+            line = line.rstrip()
+            if re.match('#',line):
+                continue
+            liste = line.split()
+            orfName = liste[0]
+            KO = liste[1]
+            evalue = liste[6]
+
+            reliability = 'unknown'
+                
+                    
+            try :
+                self.orfList[orfName].kegg = ( ko2kegg[KO] , evalue , reliability )
+            except :
+                koSet.add(KO)
+        file.close()
+        print(koSet)
+        
         
     def addingPFAM(self,filename) :
 

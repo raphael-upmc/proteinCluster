@@ -11,7 +11,7 @@ print(re.escape("Fmn_Bind (pplA)"))
 
 feature_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/gtdb_31k_genomes.feature'
 
-pfamSet = {'PF04205' : 'Fmn_Bind (pplA)','PF02424':'ApbE (fmnB)', 'PF13486' : 'PceA (PF13486)' , 'PF01794' : 'Ferric_reduct (PF01794)' , 'PF10029' : 'DUF2271 (PF10029)' , 'PF12094' : 'DUF3570 (PF12094)', 'PF16357' : 'PepSY_TM_like_2 (PF16357)' , 'PF03929' : 'PepSY_TM (PF03929)' , 'PF12801' : 'Fer4_5 (PF12801)' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' : 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)'}
+pfamSet = {'PF04205' : 'Fmn_Bind (pplA)','PF02424':'ApbE (fmnB)', 'PF13486' : 'PceA (PF13486)' , 'PF01794' : 'Ferric_reduct (PF01794)' , 'PF10029' : 'DUF2271 (PF10029)' , 'PF12094' : 'DUF3570 (PF12094)', 'PF16357' : 'PepSY_TM_like_2 (PF16357)' , 'PF03929' : 'PepSY_TM (PF03929)' , 'PF12801' : 'Fer4_5 (PF12801)' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' : 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' , 'PF10634' : 'P19 (PF10634)' , 'PF00890' : 'FAD_binding_2 (PF00890)' , 'PF14086' : 'DUF4266 (PF14086)'}
 keggSet = {'K00351':'K00351 (Na+-transporting NADH:ubiquinone oxidoreductase subunit F [EC:7.2.1.1])', 'K03616':'K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])','K00376':'K00376 (nitrous-oxide reductase [EC:1.7.2.4])','K19339':'K19339 (NosR/NirI family transcriptional regulator, nitrous oxide reductase regulator)','K03885' : 'K03885 (NADH dehydrogenase [EC:1.6.99.3])', 'K04084' : 'K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])'}
 
 system2annot = {
@@ -29,7 +29,16 @@ system2annot = {
         set(['Fer4_5 (PF12801)','Fmn_Bind (pplA)']) ,
         set(['K19339 (NosR/NirI family transcriptional regulator, nitrous oxide reductase regulator)','ApbE (fmnB)']) ,
         set(['K19339 (NosR/NirI family transcriptional regulator, nitrous oxide reductase regulator)','Fmn_Bind (pplA)']) ],
-        
+
+    'P19' : [
+        set(['P19 (PF10634)','ApbE (fmnB)']) ,
+        set(['P19 (PF10634)','Fmn_Bind (pplA)']) ],
+    
+    
+    'PF00890' : [
+        set(['FAD_binding_2 (PF00890)','ApbE (fmnB)']) ,
+        set(['FAD_binding_2 (PF00890)','Fmn_Bind (pplA)']) ],
+    
     'Rnf' : [
         set(['Fmn_Bind (pplA)','K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])']) ,
         set(['ApbE (fmnB)','K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])']) ] ,
@@ -55,7 +64,10 @@ system2annot = {
         set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','Fmn_Bind (pplA)']) ,
         set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','ApbE (fmnB)']) ,
         set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','DUF2271 (PF10029)']) ,
-        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','DUF3570 (PF12094)']) ] ,
+        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','DUF3570 (PF12094)']) ],
+
+    'dsbD-like' : [
+        set(['ApbE (fmnB)','DUF3570 (PF12094)' , 'DUF4266 (PF14086)']) ],
     
     'PepSY' : [
         set(['PepSY_TM (PF03929)','Fmn_Bind (pplA)']) ,
@@ -226,14 +238,14 @@ for line in file :
     liste = line.split()
     orf = liste[0]
     accession = liste[1]
-    if accession not in keggAccession2keggObject :
+    if accession not in accession2keggDescription :
         description =  accession
     else:
         description = accession2keggDescription[accession]
 
     start,end = liste[3].split('-')
     cEvalue = liste[5] # conditional Evalue
-    orf2kegg[orfName].append( ( int(start) , int(end) , accession , description , cEvalue ) )
+    orf2kegg[orf].append( ( int(start) , int(end) , accession , description , cEvalue ) )
     if accession  in keggSet :# fusion
         if accession == 'K03885' : # particular case, nad from EET ==> check if 1 transmembrane helix
             if orf2tmhmm[ orf ] > 0 :
@@ -291,7 +303,7 @@ output.close()
 
 print('performing genomic context extraction...')
 genomicContext_filename = 'extracytoplasmic_flavinylation_system.genomicContext'
-cmd = '/home/meheurap/scripts/proteinCluster/extractingGenomicContext.py '+orf_filename+' '+feature_filename+' '+genomicContext_filename+' -k 5'
+cmd = '/home/meheurap/scripts/proteinCluster/extractingGenomicContext.py '+orf_filename+' '+feature_filename+' '+genomicContext_filename+' -k 10'
 status = os.system(cmd)
 print('status: '+str(status))
 print('done')
@@ -367,13 +379,13 @@ for genome,scaffold2nb2annot in genome2scaffold2nb2annot.items() :
             #print(genome+'\t'+'taxonomy'+'\t'+annot+'\t'+str(l)+'\t'+signalp+'\t'+pfam+'\t'+kegg+'\t'+desc)
 
             if orf in orf2desc : # check 5 genes before and after
-                if i - 5 < 0 :
+                if i - 10 < 0 :
                     start = 0
                 else:
-                    start = i-5
+                    start = i-10
 
-                if i + 5 < len(nb2annotList) :
-                    end = i+5
+                if i + 10 < len(nb2annotList) :
+                    end = i+10
                 else:
                     end = len(nb2annotList) - 1
 
@@ -495,12 +507,12 @@ for system,liste in system2genomes.items() :
 
 
 
-systemList = ['Rnf','NQR','Nos','EET','OrganohalideReductase', 'Ferric_reduct (PF01794)' , 'PepSY' , 'dsbD' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' , 'Fer4_5' ]
+systemList = ['Rnf','NQR','Nos','EET','OrganohalideReductase', 'Ferric_reduct (PF01794)' , 'PepSY' , 'dsbD' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' , 'Fer4_5' , 'P19' , 'dsbD-like' , 'PF00890']
 
 output = open('genome2systems.matrix','w')
-output.write('\t'+'\t'.join(systemList)+'\n')
+output.write('\t\t'+'\t'.join(systemList)+'\n')
 for asm,liste in genome2systems.items() :
-    line = asm
+    line = asm+'\t'+bin2taxonomy[asm]
     for system in systemList :
         if system in liste :
             line += '\t'+'1'
