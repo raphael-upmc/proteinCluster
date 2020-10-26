@@ -20,8 +20,8 @@ if __name__ == "__main__":
     
     # cluster using default parameters
     print('clustering the matrix...')
-#    net.cluster(dist_type='jaccard',linkage_type='complete')
-    net.cluster(run_clustering=False) 
+    net.cluster(dist_type='jaccard',linkage_type='complete')
+#    net.cluster(run_clustering=False) 
     print('done')
     
     # save visualization JSON to file for use by front end
