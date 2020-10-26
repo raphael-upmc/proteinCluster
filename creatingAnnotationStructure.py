@@ -541,7 +541,9 @@ if __name__ == "__main__":
     # if pfam_filename available
     if 'pfam_filename' in data and os.path.exists( data['pfam_filename'] ) :
         print("adding Pfam...")
-        dataset.addingPFAM_v2(data['pfam_filename'])
+        dataset.addingPFAM(data['pfam_filename'])
+        #        dataset.addingPFAM_v2(data['pfam_filename'])
+
 
     # if tmhmm_filename available
     if 'tmhmm_filename' in data and os.path.exists( data['tmhmm_filename'] ) :
@@ -556,7 +558,8 @@ if __name__ == "__main__":
     # if kegg_filename available
     if 'kegg_filename' in data and os.path.exists( data['kegg_filename'] ) :
         print("adding KEGG...")
-        dataset.addingKEGG_v2(data['kegg_filename'])
+        dataset.addingKEGG(data['kegg_filename'])
+#        dataset.addingKEGG_v2(data['kegg_filename'])
 
 
     # if psort_filename available
