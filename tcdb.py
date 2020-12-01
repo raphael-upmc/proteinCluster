@@ -65,9 +65,9 @@ def tcdbAnnotation(tcdb_annot_filename,tcdb_fasta_filename) :
 
 if __name__ == "__main__":
 
-    tcdb_db_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb'
-    tcdb_fasta_filename = '/data9/genasci/genasci_metabolism/analysis_after_filtering_drep/hmm/tcdb/tcdb.faa'
-    tcdb_annot_filename = '/home/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.dr'
+    tcdb_db_filename = '/groups/banfield/users/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb'
+    tcdb_fasta_filename = '/groups/banfield/users/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.faa'
+    tcdb_annot_filename = '/groups/banfield/users/meheurap/proteinCluster/natureCommRevision/mmseqsClustering/new_cov0.5_prob0.95/annotation/tcdb.dr'
 
 
     parser = argparse.ArgumentParser(description='running  and parsing the TCDB')

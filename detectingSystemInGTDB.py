@@ -11,7 +11,7 @@ print(re.escape("Fmn_Bind (pplA)"))
 
 feature_filename = '/groups/banfield/projects/multienv/proteinfams/GTDB/gtdb_31k_genomes.feature'
 
-pfamSet = {'PF04205' : 'Fmn_Bind (pplA)','PF02424':'ApbE (fmnB)', 'PF13486' : 'PceA (PF13486)' , 'PF01794' : 'Ferric_reduct (PF01794)' , 'PF10029' : 'DUF2271 (PF10029)' , 'PF12094' : 'DUF3570 (PF12094)', 'PF16357' : 'PepSY_TM_like_2 (PF16357)' , 'PF03929' : 'PepSY_TM (PF03929)' , 'PF12801' : 'Fer4_5 (PF12801)' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' : 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' , 'PF10634' : 'P19 (PF10634)' , 'PF00890' : 'FAD_binding_2 (PF00890)' , 'PF14086' : 'DUF4266 (PF14086)' , 'PF08534' : 'Redoxin (PF08534)' , 'PF13473' : 'Cupredoxin_1 (PF13473)' , 'PF14537' : 'Cytochrom_c3_2 (PF14537)' }
+pfamSet = {'PF04205' : 'Fmn_Bind (pplA)','PF02424':'ApbE (fmnB)', 'PF13486' : 'PceA (PF13486)' , 'PF01794' : 'Ferric_reduct (PF01794)' , 'PF10029' : 'DUF2271 (PF10029)' , 'PF12094' : 'DUF3570 (PF12094)', 'PF16357' : 'PepSY_TM_like_2 (PF16357)' , 'PF03929' : 'PepSY_TM (PF03929)' , 'PF12801' : 'Fer4_5 (PF12801)' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' : 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' , 'PF10634' : 'P19 (PF10634)' , 'PF00890' : 'FAD_binding_2 (PF00890)' , 'PF14086' : 'DUF4266 (PF14086)' , 'PF08534' : 'Redoxin (PF08534)' , 'PF13473' : 'Cupredoxin_1 (PF13473)' , 'PF14537' : 'Cytochrom_c3_2 (PF14537)' , 'PF02683' : 'DsbD (PF02683)' }
 keggSet = {'K00351':'K00351 (Na+-transporting NADH:ubiquinone oxidoreductase subunit F [EC:7.2.1.1])', 'K03616':'K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])','K00376':'K00376 (nitrous-oxide reductase [EC:1.7.2.4])','K19339':'K19339 (NosR/NirI family transcriptional regulator, nitrous oxide reductase regulator)','K03885' : 'K03885 (NADH dehydrogenase [EC:1.6.99.3])', 'K04084' : 'K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])'}
 
 system2annot = {
@@ -22,7 +22,6 @@ system2annot = {
 
     'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' : [
         set(['NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)']) ] ,
-
     
     'Fer4_5' : [
         set(['Fer4_5 (PF12801)','ApbE (fmnB)']) ,
@@ -32,15 +31,7 @@ system2annot = {
 
     'P19' : [
         set(['P19 (PF10634)','Fmn_Bind (pplA)']) ],
-    
-    
-    'PF00890' : [
-        set(['FAD_binding_2 (PF00890)','Fmn_Bind (pplA)']) ],
 
-    'cytochrome' : [
-        set(['FAD_binding_2 (PF00890)','Fmn_Bind (pplA)']) ,
-        set(['FAD_binding_2 (PF00890)' , 'Cytochrom_c3_2 (PF14537)']) ] ,
-    
     'Rnf' : [
         set(['Fmn_Bind (pplA)','K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])']) ,
         set(['ApbE (fmnB)','K03616 (Na+-translocating ferredoxin:NAD+ oxidoreductase subunit B [EC:7.2.1.2])']) ] ,
@@ -52,6 +43,7 @@ system2annot = {
     'OrganohalideReductase' :  [
         set(['PceA (PF13486)','ApbE (fmnB)']) ,
         set(['PceA (PF13486)','Fmn_Bind (pplA)']) ] ,
+
     'EET' : [
         set(['K03885 (NADH dehydrogenase [EC:1.6.99.3])','Fmn_Bind (pplA)']) ,
         set(['K03885 (NADH dehydrogenase [EC:1.6.99.3])','ApbE (fmnB)']) ] ,
@@ -63,10 +55,10 @@ system2annot = {
         set(['Ferric_reduct (PF01794)','DUF3570 (PF12094)']) ] ,
 
     'dsbD' : [
-        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','Fmn_Bind (pplA)']) ,
-        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','ApbE (fmnB)']) ,
-        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','DUF2271 (PF10029)']) ,
-        set(['K04084 (thiol:disulfide interchange protein DsbD [EC:1.8.1.8])','DUF3570 (PF12094)']) ],
+        set(['DsbD (PF02683)','Fmn_Bind (pplA)']) ,
+        set(['DsbD (PF02683)','ApbE (fmnB)']) ,
+        set(['DsbD (PF02683)','DUF4266 (PF14086)']) ,
+        set(['DsbD (PF02683)','DUF3570 (PF12094)']) ],
 
     'dsbD-like' : [
         set(['ApbE (fmnB)','DUF3570 (PF12094)' , 'DUF4266 (PF14086)']) ],
@@ -127,6 +119,7 @@ for root, dirs, files in os.walk(directory):
 #########
 # TMHMM #
 #########
+
 print('reading tmhmm....')
 directory = '/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/TMHMM'
 orf2tmhmm = dict()
@@ -272,8 +265,8 @@ for orf,liste in orf2kegg.items() :
 
 
 
-print('NZ_BAEV01000006.1_57')
-print(orf2desc['NZ_BAEV01000006.1_57'])
+# print('NZ_BAEV01000006.1_57')
+# print(orf2desc['NZ_BAEV01000006.1_57'])
         
 print('reading fasta file....')
 annot2seqList =  defaultdict(list)
@@ -289,9 +282,9 @@ for record in SeqIO.parse(fasta_filename,'fasta') :
         annot2seqList['PF02683'].append(record)
 
 print(len(orfSet_PF02683))
-SeqIO.write(annot2seqList['PF02424'],'PF02424.faa','fasta')
-SeqIO.write(annot2seqList['PF04205'],'PF04205.faa','fasta')
-SeqIO.write(annot2seqList['PF02683'],'PF02683.faa','fasta')
+# SeqIO.write(annot2seqList['PF02424'],'PF02424.faa','fasta')
+# SeqIO.write(annot2seqList['PF04205'],'PF04205.faa','fasta')
+# SeqIO.write(annot2seqList['PF02683'],'PF02683.faa','fasta')
 
 orf_filename = 'orf.txt'
 output = open(orf_filename,'w')
@@ -407,10 +400,6 @@ for genome,scaffold2nb2annot in genome2scaffold2nb2annot.items() :
 
                     j += 1
 
-                if orf2desc[orf] == 'NZ_BAEV01000006.1_57' :
-                    print('NZ_BAEV01000006.1_57')
-                    print(annotSet)
-                
                 #print(orf+'\t'+str(annotSet))
                 for system,annotList in system2annot.items() :
                     for liste in annotList :
@@ -517,7 +506,7 @@ for system,liste in system2genomes.items() :
 
 
 
-systemList = ['Rnf','NQR','Nos','EET','OrganohalideReductase', 'Ferric_reduct (PF01794)' , 'PepSY' , 'dsbD' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' , 'Fer4_5' , 'P19' , 'dsbD-like' , 'PF00890' , 'cytochrome' ]
+systemList = ['Rnf','NQR','Nos','EET','OrganohalideReductase', 'Ferric_reduct (PF01794)' , 'PepSY' , 'dsbD' , 'NQR2_RnfD_RnfE (PF03116) + NAD_binding_1 (PF00175)' , 'Fer4_5' , 'P19' , 'dsbD-like' ]
 
 output = open('genome2systems.matrix','w')
 output.write('\t\t'+'\t'.join(systemList)+'\n')
