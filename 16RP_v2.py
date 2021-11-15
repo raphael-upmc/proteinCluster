@@ -7,6 +7,55 @@ import argparse
 from Bio.SeqRecord import SeqRecord
 from concurrent.futures import ProcessPoolExecutor,wait
 
+
+def rpl2pfam() :
+    rp2pfam = {'RPL14' : 'PF00238' , 'RPL15' : 'PF00828' , 'RPL16' : 'PF00252' , 'RPL18' : 'PF00861' , 'RPL22' : 'PF00237' , 'RPL24' : 'PF17136' , 'RPL2' : 'PF03947' , 'RPL3' : 'PF00297' , 'RPL4' : 'PF00573' , 'RPL5' : 'PF00673' , 'RPL6': 'PF00347' , 'RPS10' : 'PF00338' , 'RPS17' : 'PF00366' , 'RPS19' : 'PF00203' , 'RPS3' : 'PF00189' , 'RPS8' : 'PF00410' }
+
+    pfam2rp = dict()
+    for rp,pfam in rp2pfam.items() :
+        pfam2rp[pfam] = rp
+
+    return rp2pfam, pfam2rp
+
+def buildingHmmDb(pfam2rp) :
+    output_filename = 'rp.hmm'
+    output = open(output_filename,'w')
+
+    pfamList = list()
+    name2accession = dict()
+    pfam2desc = dict()
+    pfamList_filename = '/env/cns/db/Pfam/Pfam_latest/Pfam-A.hmm'
+    file = open(pfamList_filename,'r')
+    for line in file :
+        line = line.rstrip()
+        pfamList.append(line)
+
+        liste = line.split()
+        if re.match(r'NAME',line) :
+            name = ' '.join(liste[1:])
+            accession = ''
+            desc = ''
+
+        if re.match(r'ACC',line) :
+            accession = ' '.join(liste[1:])
+            name2accession[ name ] = accession            
+            
+        if re.match(r'DESC',line) :
+            desc = ' '.join(liste[1:])
+            pfam2desc[accession] = desc+' ('+accession+')'
+
+        if line == '//' :
+            if accession.split('.')[0] in pfam2rp :
+                print(pfam2desc[accession])
+                output.write('\n'.join(pfamList)+'\n')
+                pfamList = []
+            else:
+                pfamList = []
+                continue
+                print(pfam2desc[accession])
+    file.close()
+    output.close()
+
 def HMMsearch() :
     hmm_database = ''
     directory = ''
@@ -58,45 +107,57 @@ def readingHMM(domtblout_filename) :
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='extracting the 16 ribosomal proteins')
-    parser.add_argument('protein_filename', help='the path of the FASTA_PROTEIN_FILE')
-    parser.add_argument('orf2bin_filename',help='the path of the ORF2BIN_FILE, this file is a tab-separated file, first col is the orf, second col is the genome. First line is skipped')
-    parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
-    parser.add_argument('output_summary_filename',help='the path of the OUTPUT_SUMMARY_FILE, results will be stored in this file')
-    parser.add_argument('--cpu',type=int,default=6,help='number of CPUs (default: 6)')
-    parser.add_argument('--rp14',action='store_true',default=False,help='only consider 14RPs for Archaea (default: False)')
-    parser.add_argument('--low-memory',action='store_true',default=False,help='low-memory (longer) (default: False)')
-    
-    args = parser.parse_args()
-    
-    if os.path.exists(args.protein_filename) :
-        protein_filename = os.path.abspath(args.protein_filename)
-    else:
-        sys.exit(args.protein_filename+' does not exist, exit')
+    rp2pfam, pfam2rp = rpl2pfam()
+    buildingHmmDb(pfam2rp)
 
-    if os.path.exists(args.orf2bin_filename) :
-        orf2bin_filename = os.path.abspath(args.orf2bin_filename)
-    else:
-        sys.exit(args.orf2bin_filename+' does not exist, exit')
+    # parser = argparse.ArgumentParser(description='extracting the 16 ribosomal proteins')
+    # parser.add_argument('protein_filename', help='the path of the FASTA_PROTEIN_FILE')
+    # parser.add_argument('orf2bin_filename',help='the path of the ORF2BIN_FILE, this file is a tab-separated file, first col is the orf, second col is the genome. First line is skipped')
+    # parser.add_argument('feature_filename',help='the path of the FEATURE_FILE, this file is a tab-separated file.')
+    # parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
+    # parser.add_argument('output_summary_filename',help='the path of the OUTPUT_SUMMARY_FILE, results will be stored in this file')
+    # parser.add_argument('--cpu',type=int,default=6,help='number of CPUs (default: 6)')
+    # parser.add_argument('--rp14',action='store_true',default=False,help='only consider 14RPs for Archaea (default: False)')
+    
+    # args = parser.parse_args()
+    
+    # if os.path.exists(args.protein_filename) :
+    #     protein_filename = os.path.abspath(args.protein_filename)
+    # else:
+    #     sys.exit(args.protein_filename+' does not exist, exit')
 
-    cpu = args.cpu
-    
-    output_summary_filename = os.path.abspath(args.output_summary_filename)
-    
-    output_aln_filename = os.path.abspath(args.output_filename)
-    cwd = '/'.join(output_aln_filename.split('/')[:-1])
-    
-    print('protein_filename: '+protein_filename)
-    print('orf2bin_filename: '+orf2bin_filename)
-    print('output_aln_filename: '+output_aln_filename)
-    print('output_summary_filename: '+output_summary_filename)
-    print('number of CPUs: '+str(cpu))
-    print('current working directory: '+cwd)
-    print('14RP: '+str(args.rp14))
-    print('low-memory: '+str(args.low_memory))
-    
-    folder = cwd+"/16RP_results"
-    if os.path.exists(folder) :
-        sys.exit(folder+" already exists, remove it first")
+    # if os.path.exists(args.orf2bin_filename) :
+    #     orf2bin_filename = os.path.abspath(args.orf2bin_filename)
+    # else:
+    #     sys.exit(args.orf2bin_filename+' does not exist, exit')
 
-    os.mkdir(folder)
+    # if os.path.exists(args.feature_filename) :
+    #     feature_filename = os.path.abspath(args.feature_filename)
+    # else:
+    #     sys.exit(args.feature_filename+' does not exist, exit')
+
+
+    # cpu = args.cpu
+    
+    # output_summary_filename = os.path.abspath(args.output_summary_filename)
+    
+    # output_aln_filename = os.path.abspath(args.output_filename)
+    # cwd = '/'.join(output_aln_filename.split('/')[:-1])
+    
+    # print('protein_filename: '+protein_filename)
+    # print('orf2bin_filename: '+orf2bin_filename)
+    # print('feature_filename: '+feature_filename)
+    # print('output_aln_filename: '+output_aln_filename)
+    # print('output_summary_filename: '+output_summary_filename)
+    # print('number of CPUs: '+str(cpu))
+    # print('current working directory: '+cwd)
+    # print('14RP: '+str(args.rp14))
+    
+    # folder = cwd+"/16RP_results"
+    # if os.path.exists(folder) :
+    #     sys.exit(folder+" already exists, remove it first")
+
+    # os.mkdir(folder)
+
+
+
