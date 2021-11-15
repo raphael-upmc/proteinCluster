@@ -10,7 +10,7 @@ import argparse
 def functionTaxId2taxonName() :
     taxId2taxName = dict()
     taxName2taxId = dict()
-    filename = "/groups/banfield/users/meheurap/NCBI/taxdump/names.dmp"
+    filename = "/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/taxdump/names.dmp"
     file = open(filename,"r")
     for line in file :
         line = line.rstrip()
@@ -26,7 +26,7 @@ def functionTaxId2taxonName() :
 def functionTaxId2taxon() :
     taxId2rank = dict()
     taxId2parent = dict()
-    filename = "/groups/banfield/users/meheurap/NCBI/taxdump/nodes.dmp"
+    filename = "/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/taxdump/nodes.dmp"
     file = open(filename,"r")
     for line in file :
         line = line.rstrip()
@@ -61,6 +61,7 @@ def downloadingAssemblySummary(assembly_summary_filename) :
 
 def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accessionSet,accession2gtdb) :
     accession2filename = dict()
+    accession2info = dict()
     accession2ncbiTaxonomy = dict()
     file = open(assembly_summary_filename,'r')
     for line in file :
@@ -73,6 +74,8 @@ def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,
         speciesTaxId = liste[6]
         genome = liste[7]
         genome_rep = liste[13]
+        seq_rel_date = liste[14]
+        submitter = liste[16]
         ftp_path = liste[19]
         basename = ftp_path.split('/')[-1]
         lineage_ncbi = gettingFullLineage(taxId,taxId2taxName,taxId2parent)
@@ -91,10 +94,11 @@ def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,
                 #print(accession+'\t'+lineage_gtdb+'\t'+lineage_ncbi)
                 accession2filename[accession] = genome_filename
                 accession2ncbiTaxonomy[accession] = lineage_ncbi
+                accession2info[accession] = seq_rel_date+'\t'+submitter
             else:
                 continue
     file.close()
-    return accession2filename,accession2ncbiTaxonomy
+    return accession2filename,accession2ncbiTaxonomy,accession2info
 
 def readingListTaxa(filename) :
     taxaSet = set()
@@ -121,17 +125,17 @@ def readingAccessionList(filename) :
 
 def readingGtdb() :
     accession2gtdb = dict()
-    filenameList = ['/home/meheurap/scripts/proteinCluster/bac120_metadata_r95.tsv','/home/meheurap/scripts/proteinCluster/ar122_metadata_r95.tsv']
+    filenameList = ['/env/export/cns_n02_agc/agc/bank/GTDB/release202/ar122_taxonomy_r202.tsv','/env/export/cns_n02_agc/agc/bank/GTDB/release202/bac120_taxonomy_r202.tsv']
     for filename in filenameList :
         file = open(filename,'r')
         for line in file :
             line = line.rstrip()
             liste = line.split('\t')
-            accession = liste[54]
-            lineage_16S = liste[37]
-            lineage_gtdb = liste[16]
-            lineage_ncbi = liste[78]
-            accession2gtdb[ accession ] = lineage_gtdb
+            accession = liste[0].split('_')[-1]
+            #print(accession)
+            lineage_gtdb = liste[1]
+            accession2gtdb[ 'GCA_'+accession ] = lineage_gtdb
+            accession2gtdb[ 'GCF_'+accession ] = lineage_gtdb
         file.close()
     return accession2gtdb
 
@@ -192,7 +196,7 @@ if __name__ == "__main__":
 
     accession2gtdb = readingGtdb()
 
-    accession2filename,accession2ncbiTaxonomy = readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accessionSet,accession2gtdb)
+    accession2filename,accession2ncbiTaxonomy,accession2info = readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accessionSet,accession2gtdb)
     print('number of assemblies: '+str(len(accession2filename)))
 
 
@@ -214,17 +218,18 @@ if __name__ == "__main__":
         else:
             gtdbTaxonomy = 'Na'
         
-        output.write(accession+'\t'+ncbiTaxonomy+'\t'+gtdbTaxonomy+'\t'+genome_filename+'\n')
+        output.write(accession+'\t'+ncbiTaxonomy+'\t'+gtdbTaxonomy+'\t'+accession2info[accession]+'\t'+genome_filename+'\n')
+
         if os.path.exists(output_genome_filename) :
             continue
         if os.path.exists(output_genome_filename.replace('.gz','')) :
             continue
 
-        liste = urllib.request.urlretrieve(genome_filename, output_genome_filename)
-        print( str(cpt)+'\t'+str(liste[0])+'\t'+str(liste) )
+        # liste = urllib.request.urlretrieve(genome_filename, output_genome_filename)
+        # print( str(cpt)+'\t'+str(liste[0])+'\t'+str(liste) )
 
         if not os.path.exists(output_genome_filename) :
-            accessionError(accession)
+            accessionError.add(accession)
 
     output.close()
 

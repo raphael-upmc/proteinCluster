@@ -27,6 +27,7 @@ if __name__ == "__main__":
     parser.add_argument('fasta_filename', help='the path of the FASTA_FILENAME')
     parser.add_argument('--directory',type=str,default='./',help='DIRECTORY where the results will be stored (default: current directory)')
     parser.add_argument('--coverage',type=float,default=0.5,help='the maximum ratio of gaps a sequence should have (default: 0.5)')
+    parser.add_argument('--cpu',type=int,default=1,help='number of CPUs (default: 1)')
 
     args = parser.parse_args()
     
@@ -42,14 +43,14 @@ if __name__ == "__main__":
         
     print(fasta_filename)        
     print(directory)
-
+    print(args.cpu)
 
     #########################
     ######## MAFFT ##########
     #########################
 
     mafft_filename = directory+'/'+os.path.basename(fasta_filename)+'.mafft'
-    cmd = '/shared/software/bin/mafft --auto --thread 6 '+fasta_filename+' > '+mafft_filename
+    cmd = 'mafft --auto --thread '+str(args.cpu)+' '+fasta_filename+' > '+mafft_filename
     print(cmd)
     os.system(cmd)
 
@@ -60,7 +61,7 @@ if __name__ == "__main__":
 
     trimal_filename = mafft_filename+'.trimal'
     html_filename = trimal_filename+'.html'
-    cmd = '/groups/banfield/users/meheurap/programs/trimal-trimAl/source/trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename #+' -htmlout '+html_filename
+    cmd = 'trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename #+' -htmlout '+html_filename
     print(cmd)
     os.system(cmd)
 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     ############
 
     fasttree_filename = trimal_filename+'.fasttree'
-    cmd = '/groups/banfield/users/meheurap/programs/fastTree/FastTree -out '+fasttree_filename+' '+trimal_filename
+    cmd = 'FastTree -out '+fasttree_filename+' '+trimal_filename
     print(cmd)
     os.system(cmd)
 

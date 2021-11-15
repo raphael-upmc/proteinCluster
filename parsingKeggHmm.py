@@ -52,16 +52,15 @@ if __name__ == "__main__":
     ko2desc_filename = '/groups/banfield/projects/multienv/proteinfams/duduKeggHmm/20150610/ko_name_def.tab'
 
     hmm2nc = dict()
-    hmm2length = dict()
-    hmm2sd = dict()
-    info_filename = '/groups/banfield/projects/multienv/proteinfams/duduKeggHmm/20150610/ko.gCluster.hmm.thresholds.len_mean_sd.tab'
+    info_filename = '/env/cns/proj/agc/scratch_microscope/Data/KOALADB/682/lib/ko_list'
     file = open(info_filename,'r')
+    header = next(file)
     for line in file :
         line = line.rstrip()
-        hmm,NC,length_mean,sd_mean = line.split('\t')
+        liste = line.split('\t')
+        hmm = liste[0]
+        NC = liste[1]
         hmm2nc[ hmm ] = NC
-        hmm2length[ hmm ] = length_mean
-        hmm2sd[ hmm ] = sd_mean
     file.close()
 
     

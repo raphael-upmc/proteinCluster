@@ -12,7 +12,7 @@ import shutil
 
 def runSignalP(fasta_filename,output_filename,log_filename,option) :
     #cmd = "/data7/proteinfams/SignalP/signalp-4.1/signalp -f short "+option+" "+fasta_filename+" > "+output_filename+" 2>>"+log_filename
-    cmd = 'cd /home/meheurap/programs/signalp-5.0b/bin ; ./signalp -format short '+option+' -fasta '+fasta_filename+' -prefix '+output_filename+' > '+log_filename+' 2>>'+log_filename
+    cmd = 'cd /env/cns/proj/agc/home/rmeheust/programs/signalp-5.0b/bin ; ./signalp -format short '+option+' -fasta '+fasta_filename+' -prefix '+output_filename+' > '+log_filename+' 2>>'+log_filename
     print(cmd)
     status = os.system(cmd)
     return status
