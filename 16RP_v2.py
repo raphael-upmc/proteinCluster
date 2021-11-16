@@ -122,74 +122,53 @@ def readingHMM(domtblout_filename) :
 
 if __name__ == "__main__":
 
-    # parser = argparse.ArgumentParser(description='extracting the 16 ribosomal proteins')
-    # parser.add_argument('protein_filename', help='the path of the FASTA_PROTEIN_FILE')
-    # parser.add_argument('orf2bin_filename',help='the path of the ORF2BIN_FILE, this file is a tab-separated file, first col is the orf, second col is the genome. First line is skipped')
-    # parser.add_argument('feature_filename',help='the path of the FEATURE_FILE, this file is a tab-separated file.')
-    # parser.add_argument('output_filename',help='the path of the OUTPUT_FILE, results will be stored in this file')
-    # parser.add_argument('output_summary_filename',help='the path of the OUTPUT_SUMMARY_FILE, results will be stored in this file')
-    # parser.add_argument('--cpu',type=int,default=6,help='number of CPUs (default: 6)')
-    # parser.add_argument('--rp14',action='store_true',default=False,help='only consider 14RPs for Archaea (default: False)')
+    parser = argparse.ArgumentParser(description='extracting the 16 ribosomal proteins')
+    parser.add_argument('protein_filename', help='the path of the FASTA_PROTEIN_FILE')
+    parser.add_argument('feature_filename',help='the path of the FEATURE_FILE, this file is a tab-separated file.')
+    parser.add_argument('--cpu',type=int,default=1,help='number of CPUs (default: 1)')
+    parser.add_argument('--rp14',action='store_true',default=False,help='only consider 14RPs for Archaea (default: False)')
     
-    # args = parser.parse_args()
+    args = parser.parse_args()
     
-    # if os.path.exists(args.protein_filename) :
-    #     protein_filename = os.path.abspath(args.protein_filename)
-    # else:
-    #     sys.exit(args.protein_filename+' does not exist, exit')
+    if os.path.exists(args.protein_filename) :
+        protein_filename = os.path.abspath(args.protein_filename)
+    else:
+        sys.exit(args.protein_filename+' does not exist, exit')
 
-    # if os.path.exists(args.orf2bin_filename) :
-    #     orf2bin_filename = os.path.abspath(args.orf2bin_filename)
-    # else:
-    #     sys.exit(args.orf2bin_filename+' does not exist, exit')
-
-    # if os.path.exists(args.feature_filename) :
-    #     feature_filename = os.path.abspath(args.feature_filename)
-    # else:
-    #     sys.exit(args.feature_filename+' does not exist, exit')
+    if os.path.exists(args.feature_filename) :
+        feature_filename = os.path.abspath(args.feature_filename)
+    else:
+        sys.exit(args.feature_filename+' does not exist, exit')
 
 
-    # cpu = args.cpu
+    cpu = args.cpu
+    cwd = os.getcwd()
     
-    # output_summary_filename = os.path.abspath(args.output_summary_filename)
+    print('protein_filename: '+protein_filename)
+    print('feature_filename: '+feature_filename)
+    print('number of CPUs: '+str(cpu))
+    print('current working directory: '+cwd)
+    print('14RP: '+str(args.rp14))
     
-    # output_aln_filename = os.path.abspath(args.output_filename)
-    # cwd = '/'.join(output_aln_filename.split('/')[:-1])
-    
-    # print('protein_filename: '+protein_filename)
-    # print('orf2bin_filename: '+orf2bin_filename)
-    # print('feature_filename: '+feature_filename)
-    # print('output_aln_filename: '+output_aln_filename)
-    # print('output_summary_filename: '+output_summary_filename)
-    # print('number of CPUs: '+str(cpu))
-    # print('current working directory: '+cwd)
-    # print('14RP: '+str(args.rp14))
-    
-    # folder = cwd+"/16RP_results"
-    # if os.path.exists(folder) :
-    #     sys.exit(folder+" already exists, remove it first")
+    folder = cwd+"/16RP_results"
+    if os.path.exists(folder) :
+        sys.exit(folder+" already exists, remove it first")
 
-    # os.mkdir(folder)
+    os.mkdir(folder)
 
 
-
-    hmm_filename = 'rp.hmm'
-    if not os.path.exists(hmm_filename) :
-        buildingHmmDb(pfam2rp)
-
-    folder = '.'
     output_aln_filename = folder+'/'+'16RP.aln'
     output_summary_filename = folder+'/'+'16RP.summary'
     matrix_filename = folder+'/'+'16RP.summary'
     missing_genomes_filename = folder+'/'+'16RP.missingGenomes'
 
-    feature_filename = 'hbc.feature'
-    fasta_filename = 'hbc.faa'
-    domtblout_filename = 'hbc.domtblout'
-    cpu = 1
-
 
     rp2pfam, pfam2rp = rp2pfam()
+    hmm_filename = folder+'/'+'16RP.hmm'
+    if not os.path.exists(hmm_filename) :
+        buildingHmmDb(pfam2rp)
+
+
     if not os.path.exists(domtblout_filename) :
         cmd,status = runningHMM(domtblout_filename,hmm_filename,fasta_filename,cpu)
         print(cmd)
