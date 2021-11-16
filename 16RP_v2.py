@@ -7,8 +7,31 @@ import argparse
 from Bio.SeqRecord import SeqRecord
 from concurrent.futures import ProcessPoolExecutor,wait
 
+def kNearestNeighbors(markerSet,geneList,k) :
+    last = None
+    cluster2markers = dict()
+    cluster = 0
+    sortedList = sorted(geneList.items(),key=lambda x:x[1][0])
+    for i in range( len(sortedList) ) :
+        if sortedList[i][0] not in markerSet :
+            continue
+        else:
+            if cluster not in cluster2markers :
+                last = i
+                cluster2markers[cluster] = [ sortedList[i][0] ]
+            else:
+                delta = i - last - 1
+                if delta <= k : 
+                    cluster2markers[cluster].append(sortedList[i][0])
+                    last = i
+                else:
+                    cluster += 1
+                    cluster2markers[cluster] = [ sortedList[i][0] ]
+                    last = i
+    return cluster2markers
 
-def rpl2pfam() :
+
+def rp2pfam() :
     rp2pfam = {'RPL14' : 'PF00238' , 'RPL15' : 'PF00828' , 'RPL16' : 'PF00252' , 'RPL18' : 'PF00861' , 'RPL22' : 'PF00237' , 'RPL24' : 'PF17136' , 'RPL2' : 'PF03947' , 'RPL3' : 'PF00297' , 'RPL4' : 'PF00573' , 'RPL5' : 'PF00673' , 'RPL6': 'PF00347' , 'RPS10' : 'PF00338' , 'RPS17' : 'PF00366' , 'RPS19' : 'PF00203' , 'RPS3' : 'PF00189' , 'RPS8' : 'PF00410' }
 
     pfam2rp = dict()
@@ -56,22 +79,14 @@ def buildingHmmDb(pfam2rp) :
     file.close()
     output.close()
 
-def HMMsearch() :
-    hmm_database = ''
-    directory = ''
-    for directory in directoryList :
-        for root, dirs, files in os.walk(directory):
-            for filename in files :
-                basename = filename.replace('.hmm','')
-                hmm_filename = root+'/'+filename
-                domtblout_filename = '/data7/proteinfams/genomicContext/domtblout/'+basename+'.domtblout'
-                if not os.path.exists(domtblout_filename) :
-                    cmd = 'hmmsearch -E 1e-10 --cpu 1 --domtblout '+domtblout_filename+' '+hmm_filename+' '+fasta_filename+' >/dev/null 2>/dev/null'
-                    status = os.system(cmd)
-                    print(str(status)+'\t'+cmd)
+
+def runningHMM(domtblout_filename,hmm_filename,fasta_filename,cpu) :
+    cmd = 'hmmsearch -E 1e-3 --cpu '+str(cpu)+' --domtblout '+domtblout_filename+' '+hmm_filename+' '+fasta_filename+'>/dev/null 2>/dev/null' 
+    status = os.system(cmd)
+    return cmd,status
 
 def readingHMM(domtblout_filename) :
-    orf2hmm = defaultdict(list)
+    orf2hmm = dict()
     file = open(domtblout_filename,'r')
     for line in file :
         line = line.rstrip()
@@ -82,7 +97,7 @@ def readingHMM(domtblout_filename) :
         orf = liste[0]
         length = liste[2]
         hmm = liste[3]
-        ko = liste[3].split(".")[0]
+        pfam = liste[4].split(".")[0]
         hmmLength = liste[5]
         evalue = liste[6]
         bitscore = liste[7]
@@ -100,15 +115,12 @@ def readingHMM(domtblout_filename) :
 
         orfCover = float( int(envE) - int(envS) + 1 ) / float(length)
         hmmCover = float( int(hmmE) - int(hmmS) + 1 ) / float(hmmLength)
-        orf2hmm[ orf ].append( hmm , float(evalue) , float(bitscore) , orfCover , hmmCover , length, hmmLength )
+        orf2hmm[ orf ] = [ pfam , float(evalue) , float(bitscore) , orfCover , hmmCover , length, hmmLength ]
     file.close()
     return orf2hmm
 
 
 if __name__ == "__main__":
-
-    rp2pfam, pfam2rp = rpl2pfam()
-    buildingHmmDb(pfam2rp)
 
     # parser = argparse.ArgumentParser(description='extracting the 16 ribosomal proteins')
     # parser.add_argument('protein_filename', help='the path of the FASTA_PROTEIN_FILE')
@@ -160,4 +172,248 @@ if __name__ == "__main__":
     # os.mkdir(folder)
 
 
+
+    hmm_filename = 'rp.hmm'
+    if not os.path.exists(hmm_filename) :
+        buildingHmmDb(pfam2rp)
+
+    folder = '.'
+    output_aln_filename = folder+'/'+'16RP.aln'
+    output_summary_filename = folder+'/'+'16RP.summary'
+    matrix_filename = folder+'/'+'16RP.summary'
+    missing_genomes_filename = folder+'/'+'16RP.missingGenomes'
+
+    feature_filename = 'hbc.feature'
+    fasta_filename = 'hbc.faa'
+    domtblout_filename = 'hbc.domtblout'
+    cpu = 1
+
+
+    rp2pfam, pfam2rp = rp2pfam()
+    if not os.path.exists(domtblout_filename) :
+        cmd,status = runningHMM(domtblout_filename,hmm_filename,fasta_filename,cpu)
+        print(cmd)
+        print(status)
+    
+ 
+    orf2hmm = readingHMM(domtblout_filename)
+    
+    # get fasta sequences of ORFs matching a genetic markers
+    orf2seq = dict()
+    for record in SeqIO.parse(fasta_filename,'fasta') :
+        if record.id in orf2hmm :
+            orf2seq[record.id] = record
+        else:
+            continue
+
+    # get the genome and scaffold names of genetic markers
+    scaffoldSet = set()
+    file = open(feature_filename,'r')
+    for line in file :
+        line = line.rstrip()
+        orf,genome,scaffold,start,end,strand = line.split('\t')
+        if orf in orf2hmm :
+            scaffoldSet.add(genome+'\t'+scaffold)        
+    file.close()
+
+
+    # get the genomic context of scaffolds encoding a genetic markers
+    genome2scaffold2orf = dict()
+    orf2coordinate = dict()
+    file = open(feature_filename,'r')
+    for line in file :
+        line = line.rstrip()
+        orf,genome,scaffold,start,end,strand = line.split('\t')
+        if genome+'\t'+scaffold in scaffoldSet :
+            orf2coordinate[ orf ] = [ int(start),int(end),strand ]
+            if genome not in genome2scaffold2orf :
+                genome2scaffold2orf[ genome ] = defaultdict(list)
+            
+            if scaffold not in genome2scaffold2orf[ genome ] :
+                genome2scaffold2orf[ genome ][scaffold] = dict()
+            genome2scaffold2orf[ genome ][scaffold][ orf ] = [ int(start) , int(end) , strand ]
+    file.close()
+
+    # partioning the markers into gene clusters using the parameter k
+    genome2scaffold2cluster2orf = dict()
+    for genome,scaffold2orf in genome2scaffold2orf.items() :
+        print(genome)
+        if genome not in genome2scaffold2cluster2orf :
+            genome2scaffold2cluster2orf[genome] = dict()
+        for scaffold,orf2coordinate in scaffold2orf.items() :
+            print('\t'+scaffold)
+            cluster2markers = kNearestNeighbors(orf2hmm,orf2coordinate,2)
+            genome2scaffold2cluster2orf[ genome ][scaffold] = cluster2markers
+
+
+    # writing the matrix output
+    output = open(matrix_filename,'w')
+    output.write('genome'+'\t'+'scaffold'+'\t'+'cluster')
+    for rp,pfam in sorted(rp2pfam.items()) :
+        output.write('\t'+rp+' ('+pfam+')')
+    output.write('\n')
+
+    for genome, scaffold2cluster2orf in genome2scaffold2cluster2orf.items() :
+        print(genome)
+        for scaffold,cluster2markers in scaffold2cluster2orf.items() :
+            for cluster,liste in cluster2markers.items() :
+                output.write(genome+'\t'+scaffold+'\t'+str(cluster))
+                rp2orfs = defaultdict(set)
+                for orf in liste :
+                    pfam = orf2hmm[orf][0]
+                    rp = pfam2rp[pfam]
+                    rp2orfs[rp].add(orf)
+
+                print('\t\t'+str(cluster))
+                for rp,pfam in sorted(rp2pfam.items()) :
+                    if rp in rp2orfs :
+                        output.write('\t'+','.join(list(rp2orfs[rp])))
+                    else:
+                        output.write('\t'+'-')
+                output.write('\n')
+    output.close()
+
+
+    ###############################
+    # selecting the best scaffold #
+    ###############################
+    
+    genome2summary = dict()
+    genome2scaffold = dict()
+
+    for genome,scaffold2cluster2orf in genome2scaffold2cluster2orf.items() :
+        cluster_nb = 0
+        scaffold_nb = len(scaffold2cluster2orf)
+        contaminationSet = set()
+        contamination = 'no'
+        rpSet = set()
+        nb = 0
+        best = 0        
+        for scaffold in scaffold2cluster2orf :
+            cluster_nb += len(scaffold2cluster2orf[scaffold])
+            for cluster in scaffold2cluster2orf[scaffold] :
+                cluster_contamination = 'no'
+                clusterRpSet = set()
+
+                nb += len(scaffold2cluster2orf[scaffold][cluster])
+
+
+                for orf in scaffold2cluster2orf[scaffold][cluster] : 
+                    pfam = orf2hmm[orf][0]
+                    rp = pfam2rp[pfam]
+
+                    if rp not in rpSet :
+                        rpSet.add(rp)
+                    else :
+                        contaminationSet.add(rp)
+                        contamination = 'yes' # the same RP is present in several copy
+
+                    if rp not in clusterRpSet :
+                        clusterRpSet.add(rp)
+                    else :
+                        cluster_contamination = 'yes' # the same RP is present in several copy in the same cluster
+
+
+                if len(scaffold2cluster2orf[scaffold][cluster]) > best and cluster_contamination == 'no':
+                    best = len(scaffold2cluster2orf[scaffold][cluster])
+                    scaffoldBest = [scaffold,cluster]
+                    
+        genome2scaffold[genome] = scaffoldBest 
+
+        if len(contaminationSet) == 0 :
+            result = '-'
+        else:
+            result = ','.join(list(contaminationSet))
+
+        genome2summary[ genome ] = genome+'\t'+str(scaffold_nb)+'\t'+str(cluster_nb)+'\t'+str(nb)+'\t'+str(best)+'\t'+contamination+'\t'+result
+
+
+    ##########################################################
+    # extracting the fasta sequences and performing the MSAs #
+    ##########################################################
+    
+    rp2seq = defaultdict(list)
+    for genome in genome2scaffold :
+        scaffold,cluster = genome2scaffold[genome]
+        for orf in genome2scaffold2cluster2orf[genome][scaffold][cluster] : 
+            pfam = orf2hmm[orf][0]
+            rp = pfam2rp[pfam]        
+            rp2seq[rp].append( SeqRecord(seq=orf2seq[orf].seq,id=genome,description="") )
+
+
+    print('performing MSA...')
+    for rp,seqList in rp2seq.items() :
+        print(rp+'\t'+str( len(seqList) ) )
+
+        output_filename = folder+'/'+rp+'.fa'
+        SeqIO.write(seqList,output_filename,'fasta')
+        mafft_filename = output_filename.replace('.fa','.mafft')
+        cmd = 'mafft --auto --thread '+str(cpu)+' '+output_filename+' > '+mafft_filename+' 2>/dev/null'
+        print(cmd)
+        os.system(cmd)
+        
+        trimal_filename = mafft_filename.replace('.mafft','.trimal')
+        cmd = 'trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename
+        print(cmd)
+        os.system(cmd)
+    
+    print('done')
+
+    print('creating final output...')
+    genome2aln = defaultdict(str)
+    for (path, dirs, files) in os.walk(folder):
+        for filename in files :
+            if not re.search(r'.trimal$',filename) :
+                continue
+            print(filename)
+            rpGenomeSet = set()
+            lengthSet = set()
+            for seq_record in SeqIO.parse(path+'/'+filename, "fasta"):
+                l = len(seq_record)
+                lengthSet.add(l)
+                genome2aln[ seq_record.description ] += str(seq_record.seq)
+                rpGenomeSet.add(seq_record.description)
+            if len(lengthSet) != 1 :
+                sys.exit('error : '+str(lengthSet) )
+
+            fakeSeq = ''
+            for i in range(l) :
+                fakeSeq += '-'
+
+            for genome in genome2scaffold :
+                if genome not in rpGenomeSet :
+                    genome2aln[ genome ] += fakeSeq
+                else :
+                    continue
+
+                
+    ###############################
+    # Concatenating the 16RP MSAs #
+    ###############################
+
+    print('genome2aln: '+str(len(genome2aln)))
+    output1 = open(output_summary_filename,'w')
+    output1.write('genome'+'\t'+'nb_of_scaffolds'+'\t'+'nb_of_RPs'+'\t'+'nb_of_RPs_on_the_best_scaffold'+'\t'+'are_RPs_duplicated'+'\t'+'list_of_RPs_duplicated'+'\t'+'size'+'\n')
+
+    lengthSet = set()
+    output = open(output_aln_filename,'w')
+    for genome,aln in genome2aln.items() :
+
+        l = float(len(aln.replace('-',''))) / float(len(aln))
+        genome2summary[ genome ] += '\t'+str(l)
+        output1.write(genome2summary[ genome ]+'\n')
+
+        output.write('>'+genome+'\n')
+        output.write(aln+'\n')
+    output.close()
+    output1.close()
+    print('done')
+
+    output = open(missing_genomes_filename,'w')
+    for genome in genome2scaffold2orf :
+        if genome not in genome2aln :
+            output.write(genome+'\n')
+        else:
+            continue
+    output.close()
 
