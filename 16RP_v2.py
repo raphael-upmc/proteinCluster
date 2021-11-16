@@ -40,9 +40,8 @@ def rp2pfam() :
 
     return rp2pfam, pfam2rp
 
-def buildingHmmDb(pfam2rp) :
-    output_filename = 'rp.hmm'
-    output = open(output_filename,'w')
+def buildingHmmDb(pfam2rp,hmm_filename) :
+    output = open(hmm_filename,'w')
 
     pfamList = list()
     name2accession = dict()
@@ -81,7 +80,7 @@ def buildingHmmDb(pfam2rp) :
 
 
 def runningHMM(domtblout_filename,hmm_filename,fasta_filename,cpu) :
-    cmd = 'hmmsearch -E 1e-3 --cpu '+str(cpu)+' --domtblout '+domtblout_filename+' '+hmm_filename+' '+fasta_filename+'>/dev/null 2>/dev/null' 
+    cmd = 'hmmsearch -E 1e-3 --cpu '+str(cpu)+' --domtblout '+domtblout_filename+' '+hmm_filename+' '+fasta_filename+' >/dev/null 2>/dev/null' 
     status = os.system(cmd)
     return cmd,status
 
@@ -166,11 +165,11 @@ if __name__ == "__main__":
     rp2pfam, pfam2rp = rp2pfam()
     hmm_filename = folder+'/'+'16RP.hmm'
     if not os.path.exists(hmm_filename) :
-        buildingHmmDb(pfam2rp)
-
-
+        buildingHmmDb(pfam2rp,hmm_filename)
+    
+    domtblout_filename = folder+'/'+'16RP.domtblout'
     if not os.path.exists(domtblout_filename) :
-        cmd,status = runningHMM(domtblout_filename,hmm_filename,fasta_filename,cpu)
+        cmd,status = runningHMM(domtblout_filename,hmm_filename,protein_filename,cpu)
         print(cmd)
         print(status)
     
@@ -179,7 +178,7 @@ if __name__ == "__main__":
     
     # get fasta sequences of ORFs matching a genetic markers
     orf2seq = dict()
-    for record in SeqIO.parse(fasta_filename,'fasta') :
+    for record in SeqIO.parse(protein_filename,'fasta') :
         if record.id in orf2hmm :
             orf2seq[record.id] = record
         else:
