@@ -31,8 +31,11 @@ def kNearestNeighbors(markerSet,geneList,k) :
     return cluster2markers
 
 
-def rp2pfam() :
-    rp2pfam = {'RPL14' : 'PF00238' , 'RPL15' : 'PF00828' , 'RPL16' : 'PF00252' , 'RPL18' : 'PF00861' , 'RPL22' : 'PF00237' , 'RPL24' : 'PF17136' , 'RPL2' : 'PF03947' , 'RPL3' : 'PF00297' , 'RPL4' : 'PF00573' , 'RPL5' : 'PF00673' , 'RPL6': 'PF00347' , 'RPS10' : 'PF00338' , 'RPS17' : 'PF00366' , 'RPS19' : 'PF00203' , 'RPS3' : 'PF00189' , 'RPS8' : 'PF00410' }
+def rp2pfam(rp_nb) :
+    if rp_nb :
+        rp2pfam = {'RPL14' : 'PF00238' , 'RPL15' : 'PF00828' , 'RPL18' : 'PF00861' , 'RPL22' : 'PF00237' , 'RPL24' : 'PF17136' , 'RPL2' : 'PF03947' , 'RPL3' : 'PF00297' , 'RPL4' : 'PF00573' , 'RPL5' : 'PF00673' , 'RPL6': 'PF00347' , 'RPS17' : 'PF00366' , 'RPS19' : 'PF00203' , 'RPS3' : 'PF00189' , 'RPS8' : 'PF00410' }
+    else:
+        rp2pfam = {'RPL14' : 'PF00238' , 'RPL15' : 'PF00828' , 'RPL16' : 'PF00252' , 'RPL18' : 'PF00861' , 'RPL22' : 'PF00237' , 'RPL24' : 'PF17136' , 'RPL2' : 'PF03947' , 'RPL3' : 'PF00297' , 'RPL4' : 'PF00573' , 'RPL5' : 'PF00673' , 'RPL6': 'PF00347' , 'RPS10' : 'PF00338' , 'RPS17' : 'PF00366' , 'RPS19' : 'PF00203' , 'RPS3' : 'PF00189' , 'RPS8' : 'PF00410' }
 
     pfam2rp = dict()
     for rp,pfam in rp2pfam.items() :
@@ -161,8 +164,7 @@ if __name__ == "__main__":
     matrix_filename = folder+'/'+'16RP.summary'
     missing_genomes_filename = folder+'/'+'16RP.missingGenomes'
 
-
-    rp2pfam, pfam2rp = rp2pfam()
+    rp2pfam, pfam2rp = rp2pfam(args.rp14)
     hmm_filename = folder+'/'+'16RP.hmm'
     if not os.path.exists(hmm_filename) :
         buildingHmmDb(pfam2rp,hmm_filename)
