@@ -42,7 +42,7 @@ if __name__ == "__main__":
     for line in file :
         line = line.rstrip()
         genome,size = line.split('\t')
-        genome2annotation[ genome ] = int(size)
+        genome2annotation[ genome ] = float(size)
     file.close()
 
 
