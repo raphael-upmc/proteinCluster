@@ -54,13 +54,10 @@ if __name__ == "__main__":
     # annotation2color
     annotation2color = dict()
     if args.color != None : # color file provided
-
         if os.path.exists(args.color) :
             color2annotation_filename = os.path.abspath(args.color)
         else:
             sys.exit(args.color+' does not exist, exit')
-
-
         file = open(color2annotation_filename,'r')
         header = next(file)
         for line in file :

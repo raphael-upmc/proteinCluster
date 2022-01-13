@@ -97,7 +97,10 @@ if __name__ == "__main__":
     output.write('FIELD_LABELS\t'+'\t'.join(annotationList)+'\n')
     output.write('FIELD_COLORS')
     for annot in annotationList :
-        output.write('\t'+annotation2color[annot])
+        if annot in annotation2color :
+            output.write('\t'+annotation2color[annot])
+        else:
+            output.write('\t'+'#000000')
     output.write('\n')
     
     output.write('\n\n')

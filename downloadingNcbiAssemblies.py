@@ -225,8 +225,8 @@ if __name__ == "__main__":
         if os.path.exists(output_genome_filename.replace('.gz','')) :
             continue
 
-        # liste = urllib.request.urlretrieve(genome_filename, output_genome_filename)
-        # print( str(cpt)+'\t'+str(liste[0])+'\t'+str(liste) )
+        liste = urllib.request.urlretrieve(genome_filename, output_genome_filename)
+        print( str(cpt)+'\t'+str(liste[0])+'\t'+str(liste) )
 
         if not os.path.exists(output_genome_filename) :
             accessionError.add(accession)

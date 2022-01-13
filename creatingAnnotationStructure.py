@@ -272,7 +272,7 @@ class DatasetAnnotation:
 
     def addingKEGG(self,filename):
         ko2kegg = dict()        
-        json_filename = '/groups/banfield/projects/multienv/proteinfams/cpr/CPR_proteinClustering/annotation/keggHMM/ko00000.json'
+        json_filename = '/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/ko00001.json'
 
         with open(json_filename) as f:
             data = json.load(f)
@@ -352,7 +352,7 @@ class DatasetAnnotation:
         ko2kegg = dict()        
 
         print('reading kegg....')
-        koList_filename = '/shared/db/kegg/kofam/latest/metadata/ko_list'
+        koList_filename = '/env/cns/proj/agc/scratch_microscope/Data/KOALADB/682/lib/ko_list'
         file = open(koList_filename,"r")
         header = next(file)
         for line in file :
@@ -384,7 +384,7 @@ class DatasetAnnotation:
 
         print("\treading Pfam info...")
         pfamAccession2pfamObject = dict()
-        info_filename = "/groups/banfield/projects/multienv/proteinfams/NCBI_balanced_dataset/ncbiGenomeDbComprehensive20171212/PFAM/Pfam-A.clans.tsv"
+        info_filename = "/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/Pfam-A.clans.tsv"
         file = open(info_filename,"r")
         for line in file :
             line = line.rstrip()
@@ -411,7 +411,7 @@ class DatasetAnnotation:
 
         print("\treading Pfam info...")
         pfamAccession2pfamObject = dict()
-        info_filename = "/groups/banfield/projects/multienv/proteinfams/GTDB/annotation/Pfam-A.clans.version33.0.tsv"
+        info_filename = "/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/Pfam-A.clans.tsv"
         file = open(info_filename,"r")
         for line in file :
             line = line.rstrip()
@@ -541,8 +541,8 @@ if __name__ == "__main__":
     # if pfam_filename available
     if 'pfam_filename' in data and os.path.exists( data['pfam_filename'] ) :
         print("adding Pfam...")
-        dataset.addingPFAM(data['pfam_filename'])
-        #        dataset.addingPFAM_v2(data['pfam_filename'])
+        #dataset.addingPFAM(data['pfam_filename'])
+        dataset.addingPFAM_v2(data['pfam_filename'])
 
 
     # if tmhmm_filename available
@@ -558,8 +558,8 @@ if __name__ == "__main__":
     # if kegg_filename available
     if 'kegg_filename' in data and os.path.exists( data['kegg_filename'] ) :
         print("adding KEGG...")
-        dataset.addingKEGG(data['kegg_filename'])
-#        dataset.addingKEGG_v2(data['kegg_filename'])
+#        dataset.addingKEGG(data['kegg_filename'])
+        dataset.addingKEGG_v2(data['kegg_filename'])
 
 
     # if psort_filename available
