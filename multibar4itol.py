@@ -45,8 +45,8 @@ if __name__ == "__main__":
         line = line.rstrip()
         genome,size,annotation = line.split('\t')
         if genome not in genome2annotation2nb :
-            genome2annotation2nb[ genome ] = defaultdict(int)
-        genome2annotation2nb[ genome ][annotation] = int(size)
+            genome2annotation2nb[ genome ] = defaultdict(float)
+        genome2annotation2nb[ genome ][annotation] = float(size)
         annotationSet.add(annotation)
     file.close()
 

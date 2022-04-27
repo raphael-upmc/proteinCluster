@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     output_aln_filename = folder+'/'+'16RP.aln'
     output_summary_filename = folder+'/'+'16RP.summary'
-    matrix_filename = folder+'/'+'16RP.summary'
+    matrix_filename = folder+'/'+'16RP.matrix'
     missing_genomes_filename = folder+'/'+'16RP.missingGenomes'
 
     rp2pfam, pfam2rp = rp2pfam(args.rp14)
@@ -187,11 +187,13 @@ if __name__ == "__main__":
             continue
 
     # get the genome and scaffold names of genetic markers
+    totalGenomeSet = set()
     scaffoldSet = set()
     file = open(feature_filename,'r')
     for line in file :
         line = line.rstrip()
         orf,genome,scaffold,start,end,strand = line.split('\t')
+        totalGenomeSet.add(genome)
         if orf in orf2hmm :
             scaffoldSet.add(genome+'\t'+scaffold)        
     file.close()
@@ -373,7 +375,7 @@ if __name__ == "__main__":
 
     print('genome2aln: '+str(len(genome2aln)))
     output1 = open(output_summary_filename,'w')
-    output1.write('genome'+'\t'+'nb_of_scaffolds'+'\t'+'nb_of_RPs'+'\t'+'nb_of_RPs_on_the_best_scaffold'+'\t'+'are_RPs_duplicated'+'\t'+'list_of_RPs_duplicated'+'\t'+'size'+'\n')
+    output1.write('genome'+'\t'+'nb_of_scaffolds'+'\t'+'nb_of_clusters'+'\t'+'nb_of_RPs'+'\t'+'nb_of_RPs_on_the_best_scaffold'+'\t'+'are_RPs_duplicated'+'\t'+'list_of_RPs_duplicated'+'\t'+'size'+'\n')
 
     lengthSet = set()
     output = open(output_aln_filename,'w')
@@ -390,7 +392,7 @@ if __name__ == "__main__":
     print('done')
 
     output = open(missing_genomes_filename,'w')
-    for genome in genome2scaffold2orf :
+    for genome in totalGenomeSet :
         if genome not in genome2aln :
             output.write(genome+'\n')
         else:

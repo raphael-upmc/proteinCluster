@@ -11,7 +11,7 @@ import argparse
 import shutil
 import subprocess
 
-def runSignalP(fasta_filename,output_filename,log_filename,option) :
+def runSignalP5(fasta_filename,output_filename,log_filename,option) :
     #cmd = "/data7/proteinfams/SignalP/signalp-4.1/signalp -f short "+option+" "+fasta_filename+" > "+output_filename+" 2>>"+log_filename
     cmd = 'cd /env/cns/proj/agc/home/rmeheust/programs/signalp-5.0b/bin ; ./signalp -format short '+option+' -fasta '+fasta_filename+' -prefix '+output_filename+' > '+log_filename+' 2>>'+log_filename
     print(cmd)
@@ -21,12 +21,7 @@ def runSignalP(fasta_filename,output_filename,log_filename,option) :
 def runSignalP6(fasta_filename,output_directory,log_filename,option) :
     #cmd = "/data7/proteinfams/SignalP/signalp-4.1/signalp -f short "+option+" "+fasta_filename+" > "+output_filename+" 2>>"+log_filename
     cmd = 'source /env/cns/proj/agc/scratch/conda/miniconda.profile && conda activate signalp-6.0 && signalp6 -m fast -fmt txt '+option+' -ff '+fasta_filename+' -wp 1 -od '+output_directory+' > '+log_filename+' 2>>'+log_filename
-    print(cmd)
-    #status = os.system(cmd)
-    print('toto')
     status = os.system(cmd)
-    print(status)
-    print('toto')
     return status
 
 
@@ -109,7 +104,7 @@ if __name__ == "__main__":
             fasta_filename = root+'/'+filename
             output_directory = directory+'/'+"output"+'/'+filename+'.signalP'
             log_filename = directory+'/'+"log"+'/'+filename+'.log'
-            results.append( pool.apply_async( runSignalP6, args= (fasta_filename,output_directory,log_filename,option,) ))
+            results.append( pool.apply_async( runSignalP5, args= (fasta_filename,output_directory,log_filename,option,) ))
     pool.close() # Prevents any more tasks from being submitted to the pool
     pool.join() # Wait for the worker processes to exit
 
@@ -142,8 +137,8 @@ if __name__ == "__main__":
     # removing tmp directory #
     ##########################
     
-#    print('removing tmp directory '+directory)
-#    shutil.rmtree(directory)
+   print('removing tmp directory '+directory)
+   shutil.rmtree(directory)
 
     
     sys.exit()
