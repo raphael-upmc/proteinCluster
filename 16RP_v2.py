@@ -143,6 +143,30 @@ if __name__ == "__main__":
         sys.exit(args.feature_filename+' does not exist, exit')
 
 
+    # checking fasta and feature files
+    proteinSeqSet = set()
+    for record in SeqIO.parse(protein_filename,'fasta') :
+        proteinSeqSet.add(record.id)
+        
+    # get the genome and scaffold names of genetic markers
+    featureSeqSet = set()
+    file = open(feature_filename,'r')
+    for line in file :
+        line = line.rstrip()
+        orf,genome,scaffold,start,end,strand = line.split('\t')
+        featureSeqSet.add(orf)
+    file.close()
+
+    print(list(proteinSeqSet)[:10])
+    print(list(featureSeqSet)[:10])
+
+    print('nb of sequences in '+protein_filename+': '+str(len(proteinSeqSet)))
+    print('nb of sequences in '+feature_filename+': '+str(len(featureSeqSet)))
+    print('intersection between '+protein_filename+' and '+feature_filename+': '+str(len(proteinSeqSet.intersection(featureSeqSet))))
+    
+    if len(proteinSeqSet.intersection(featureSeqSet)) != len(proteinSeqSet) :
+        sys.exit('not the same sequences set between the feature and protein files, exit')
+
     cpu = args.cpu
     cwd = os.getcwd()
     
@@ -155,7 +179,6 @@ if __name__ == "__main__":
     folder = cwd+"/16RP_results"
     if os.path.exists(folder) :
         sys.exit(folder+" already exists, remove it first")
-
     os.mkdir(folder)
 
 
