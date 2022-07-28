@@ -55,7 +55,7 @@ if __name__ == "__main__":
         genome2annotation[ genome ] = annot
         annotationSize = len(liste[1:])
     file.close()
-
+    print('# of annotations: '+str(annotationSize))
 
     # annotation2color
     annotation2color = dict()

@@ -49,6 +49,7 @@ if __name__ == "__main__":
     header = next(file)
     for line in file :
         line = line.rstrip()
+        print(line)
         genome,annot = line.split('\t')
         genome2annotation[ genome ] = annot
     file.close()

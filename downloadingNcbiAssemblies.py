@@ -60,6 +60,9 @@ def downloadingAssemblySummary(assembly_summary_filename) :
         #print(liste)
 
 def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accessionSet,accession2gtdb) :
+    accessionDetected = set()
+    taxaDetected = set()
+
     accession2filename = dict()
     accession2info = dict()
     accession2ncbiTaxonomy = dict()
@@ -88,16 +91,33 @@ def readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,
         if accession in accessionSet or liste[17] in accessionSet :
             accession2filename[accession] = genome_filename
             accession2ncbiTaxonomy[accession] = lineage_ncbi
-        
-        for taxon in taxaSet :
-            if re.search(';'+taxon+';',lineage_gtdb) or re.search(','+taxon+',',lineage_ncbi):
-                #print(accession+'\t'+lineage_gtdb+'\t'+lineage_ncbi)
-                accession2filename[accession] = genome_filename
-                accession2ncbiTaxonomy[accession] = lineage_ncbi
-                accession2info[accession] = seq_rel_date+'\t'+submitter
-            else:
-                continue
+            accession2info[accession] = seq_rel_date+'\t'+submitter
+            accessionDetected.add(accession)
+            accessionDetected.add(liste[17])
+        else :
+            for taxon in taxaSet :
+                if re.search(';'+taxon+';',lineage_gtdb) or re.search(','+taxon+',',lineage_ncbi):
+                    #print(accession+'\t'+lineage_gtdb+'\t'+lineage_ncbi)
+                    accession2filename[accession] = genome_filename
+                    accession2ncbiTaxonomy[accession] = lineage_ncbi
+                    accession2info[accession] = seq_rel_date+'\t'+submitter
+                    taxaDetected.add(accession)
+                else:
+                    continue
     file.close()
+
+
+    if len(accessionSet) > 0 :
+        if len(accessionSet - accessionDetected) > 0 :
+            print(str(len(accessionSet - accessionDetected))+' accessions were not detected: ')
+            for accession in accessionSet - accessionDetected :
+                print('\t'+accession)
+
+
+    if len(taxaSet) > 0 :
+        print(str(len(taxaDetected))+' accessions were detected using taxaSet: ')
+        
+
     return accession2filename,accession2ncbiTaxonomy,accession2info
 
 def readingListTaxa(filename) :
@@ -159,32 +179,41 @@ if __name__ == "__main__":
 
     output_summary_filename = os.path.abspath(args.output_summary_filename)
 
+
+    if args.taxaList == None and args.accessionList == None :
+        sys.exit('taxaList_filename and/or accessionList_filename needed, exit')
+
+    print('directory: '+directory)
+    print('output_summary_filename: '+output_summary_filename)
+
     if args.taxaList != None :
         if os.path.exists(args.taxaList) :
             taxaList_filename = os.path.abspath(args.taxaList)
+            print('taxaList_filename: '+taxaList_filename)
         else:
             sys.exit(args.taxaList+' does not exist, exit')
 
     if args.accessionList != None :
         if os.path.exists(args.accessionList) :
             accessionList_filename = os.path.abspath(args.accessionList)
+            print('accessionList_filename: '+accessionList_filename)
         else:
             sys.exit(args.accessionList+' does not exist, exit')
 
 
-    print('directory: '+directory)
-    print('output_summary_filename: '+output_summary_filename)
-    print('accessionList_filename: '+accessionList_filename)
-    print('taxaList_filename: '+taxaList_filename)
 
+    print()
     taxaSet = set()
-    if os.path.exists(taxaList_filename) :
+    if args.taxaList != None :
         taxaSet = readingListTaxa(taxaList_filename)
+        print(str(len(taxaSet))+' taxa in '+taxaList_filename)
 
     accessionSet = set()
-    if os.path.exists(accessionList_filename) :
+    if args.accessionList != None :
         accessionSet = readingAccessionList(accessionList_filename)
-    
+        print(str(len(accessionSet))+' accessions in '+accessionList_filename)    
+    print()
+
     today = date.today()
     assembly_summary_filename = 'assembly_summary_genbank_'+str(today)+'.txt'
     downloadingAssemblySummary(assembly_summary_filename)
@@ -196,9 +225,10 @@ if __name__ == "__main__":
 
     accession2gtdb = readingGtdb()
 
+    print()
     accession2filename,accession2ncbiTaxonomy,accession2info = readingAssemblySummary(assembly_summary_filename,taxId2taxName,taxId2parent,taxaSet,accessionSet,accession2gtdb)
-    print('number of assemblies: '+str(len(accession2filename)))
-
+    print('number of assemblies found: '+str(len(accession2filename)))
+    print()
 
     output = open(output_summary_filename,'w')
     output.write('assembly\tncbiTaxonomy\tgtdbTaxonomy\tftpUrl\n')
@@ -234,6 +264,7 @@ if __name__ == "__main__":
     output.close()
 
 
+    print()
     print(str(len(accessionError))+' assemblies were not downloaded')
     for accession in accessionError :
         print(accession+'\t'+accession2filename[ accession ])

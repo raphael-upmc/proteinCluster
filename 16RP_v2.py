@@ -149,13 +149,29 @@ if __name__ == "__main__":
         proteinSeqSet.add(record.id)
         
     # get the genome and scaffold names of genetic markers
+    duplicatedGenomes = set()
+    orfSet = set()
     featureSeqSet = set()
     file = open(feature_filename,'r')
     for line in file :
         line = line.rstrip()
         orf,genome,scaffold,start,end,strand = line.split('\t')
+        if orf in orfSet :
+            print('duplicates: '+str(orf)+'\t'+genome)
+            duplicatedGenomes.add(genome)
+        else:
+            orfSet.add(orf)
+
         featureSeqSet.add(orf)
     file.close()
+
+    print()
+    print('# of duplicated genomes: '+str(len(duplicatedGenomes)))
+    if len(duplicatedGenomes) != 0 :
+        print('list of duplicated genomes: ')
+        for genome in duplicatedGenomes :
+            print('\t'+genome)
+        print()
 
     print(list(proteinSeqSet)[:10])
     print(list(featureSeqSet)[:10])
@@ -223,6 +239,8 @@ if __name__ == "__main__":
 
 
     # get the genomic context of scaffolds encoding a genetic markers
+    print()
+    print('getting the genomic context of scaffolds encoding a genetic markers...')
     genome2scaffold2orf = dict()
     orf2coordinate = dict()
     file = open(feature_filename,'r')
@@ -238,25 +256,36 @@ if __name__ == "__main__":
                 genome2scaffold2orf[ genome ][scaffold] = dict()
             genome2scaffold2orf[ genome ][scaffold][ orf ] = [ int(start) , int(end) , strand ]
     file.close()
+    print('done')
+    print()
 
     # partioning the markers into gene clusters using the parameter k
+    k = 2
     genome2scaffold2cluster2orf = dict()
     for genome,scaffold2orf in genome2scaffold2orf.items() :
-        print(genome)
+        #print(genome)
         if genome not in genome2scaffold2cluster2orf :
             genome2scaffold2cluster2orf[genome] = dict()
         for scaffold,orf2coordinate in scaffold2orf.items() :
-            print('\t'+scaffold)
-            cluster2markers = kNearestNeighbors(orf2hmm,orf2coordinate,2)
+            cluster2markers = kNearestNeighbors(orf2hmm,orf2coordinate,k)
             genome2scaffold2cluster2orf[ genome ][scaffold] = cluster2markers
+    #         if scaffold == 'QRQL01000010.1' :
+    #             print(genome+'\t'+'\t'+scaffold+'\t'+str(len(orf2coordinate))+'\t'+str(orf2coordinate))
+
+
+    # print(genome2scaffold2cluster2orf['GCA_003475485.1'])
 
 
     # writing the matrix output
+    print()
+    print('writing the matrix output '+matrix_filename+'...')
     output = open(matrix_filename,'w')
     output.write('genome'+'\t'+'scaffold'+'\t'+'cluster')
     for rp,pfam in sorted(rp2pfam.items()) :
         output.write('\t'+rp+' ('+pfam+')')
     output.write('\n')
+    print('done')
+    print()
 
     for genome, scaffold2cluster2orf in genome2scaffold2cluster2orf.items() :
         print(genome)
@@ -284,9 +313,11 @@ if __name__ == "__main__":
     ###############################
     
     genome2summary = dict()
-    genome2scaffold = dict()
+    genome2bestScaffold = dict()
 
     for genome,scaffold2cluster2orf in genome2scaffold2cluster2orf.items() :
+        scaffoldBest = ['NA','NA']
+        best = 0
         cluster_nb = 0
         scaffold_nb = len(scaffold2cluster2orf)
         contaminationSet = set()
@@ -322,8 +353,9 @@ if __name__ == "__main__":
                 if len(scaffold2cluster2orf[scaffold][cluster]) > best and cluster_contamination == 'no':
                     best = len(scaffold2cluster2orf[scaffold][cluster])
                     scaffoldBest = [scaffold,cluster]
-                    
-        genome2scaffold[genome] = scaffoldBest 
+        
+        if scaffoldBest[0] != 'NA' :
+            genome2bestScaffold[genome] = scaffoldBest 
 
         if len(contaminationSet) == 0 :
             result = '-'
@@ -337,14 +369,19 @@ if __name__ == "__main__":
     # extracting the fasta sequences and performing the MSAs #
     ##########################################################
     
+
+    # error in this block #
     rp2seq = defaultdict(list)
-    for genome in genome2scaffold :
-        scaffold,cluster = genome2scaffold[genome]
-        for orf in genome2scaffold2cluster2orf[genome][scaffold][cluster] : 
+    for genome in genome2bestScaffold :
+        bestScaffold,cluster = genome2bestScaffold[genome]
+        print(genome+'\t'+bestScaffold+'\t'+str(cluster))
+        if bestScaffold == 'NA' :
+            continue
+        for orf in genome2scaffold2cluster2orf[genome][bestScaffold][cluster] : 
             pfam = orf2hmm[orf][0]
             rp = pfam2rp[pfam]        
             rp2seq[rp].append( SeqRecord(seq=orf2seq[orf].seq,id=genome,description="") )
-
+            
 
     print('performing MSA...')
     for rp,seqList in rp2seq.items() :
@@ -385,7 +422,7 @@ if __name__ == "__main__":
             for i in range(l) :
                 fakeSeq += '-'
 
-            for genome in genome2scaffold :
+            for genome in genome2bestScaffold :
                 if genome not in rpGenomeSet :
                     genome2aln[ genome ] += fakeSeq
                 else :
@@ -411,14 +448,19 @@ if __name__ == "__main__":
         output.write('>'+genome+'\n')
         output.write(aln+'\n')
     output.close()
-    output1.close()
     print('done')
 
     output = open(missing_genomes_filename,'w')
     for genome in totalGenomeSet :
         if genome not in genome2aln :
-            output.write(genome+'\n')
-        else:
-            continue
+            output.write(genome+'\n')        
+            if genome in genome2summary :
+                genome2summary[ genome ] += '\t'+'NA'
+                output1.write(genome2summary[ genome ]+'\n')
+            else:
+                genome2summary[ genome ] = genome+'\t'+'NA'+'\t'+'NA'+'\t'+'NA'+'\t'+'NA'+'\t'+'NA'+'\t'+'NA'+'\t'+'NA'
+                output1.write(genome2summary[ genome ]+'\n')
     output.close()
+    output1.close()
+
 
