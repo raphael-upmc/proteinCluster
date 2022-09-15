@@ -50,7 +50,7 @@ if __name__ == "__main__":
     #########################
 
     mafft_filename = directory+'/'+os.path.basename(fasta_filename)+'.mafft'
-    cmd = 'mafft --auto --thread '+str(args.cpu)+' '+fasta_filename+' > '+mafft_filename
+    cmd = 'mafft --auto --thread '+str(args.cpu)+' '+fasta_filename+' > '+mafft_filename+' 2>/dev/null'
     print(cmd)
     os.system(cmd)
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     trimal_filename = mafft_filename+'.trimal'
     html_filename = trimal_filename+'.html'
-    cmd = 'trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename #+' -htmlout '+html_filename
+    cmd = 'trimal -fasta -gappyout -in '+mafft_filename+' -out '+trimal_filename+' >/dev/null' #+' -htmlout '+html_filename
     print(cmd)
     os.system(cmd)
 
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     ############
 
     fasttree_filename = trimal_filename+'.fasttree'
-    cmd = 'FastTree -out '+fasttree_filename+' '+trimal_filename
+    cmd = 'FastTree -out '+fasttree_filename+' '+trimal_filename+' 2>/dev/null'
     print(cmd)
     os.system(cmd)
 

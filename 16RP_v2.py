@@ -269,11 +269,6 @@ if __name__ == "__main__":
         for scaffold,orf2coordinate in scaffold2orf.items() :
             cluster2markers = kNearestNeighbors(orf2hmm,orf2coordinate,k)
             genome2scaffold2cluster2orf[ genome ][scaffold] = cluster2markers
-    #         if scaffold == 'QRQL01000010.1' :
-    #             print(genome+'\t'+'\t'+scaffold+'\t'+str(len(orf2coordinate))+'\t'+str(orf2coordinate))
-
-
-    # print(genome2scaffold2cluster2orf['GCA_003475485.1'])
 
 
     # writing the matrix output
