@@ -1,16 +1,43 @@
 # coding: utf-8
 
+from Bio import SeqIO
+import os,sys
+
+
+pfam_hmm_filename = '/env/cns/proj/projet_CSX/scratch/bank/pfam/release_35.0/Pfam-A.hmm'
+pfam_info_filename = '/env/cns/proj/projet_CSX/scratch/bank/pfam/release_35.0/Pfam-A.clans.tsv'
+kegg_hmm_filename = '/env/cns/proj/projet_CSX/scratch/bank/kegg/release_100.0/KOFAM.hmm'
+kegg_info_filename = '/env/cns/proj/projet_CSX/scratch/bank/kegg/release_100.0/ko_list'
 
 def runningTmhmm(protein_filename,tmhmm_filename,genome):
     cmd = '/env/cns/proj/agc/home/rmeheust/programs/tmhmm-2.0c/bin/tmhmm --short '+protein_filename+'  > '+tmhmm_filename
     status = os.system(cmd)
     return status,cmd,genome
 
-def runningSignalp(protein_filename,signalp_filename,signalp_directory,genome) :
+def runningPfam(protein_filename,pfam_hmm_filename,domtblout_filename,genome):
+    cmd1 = 'hmmsearch -E 1e-3 --cpu '+str(1)+' --domtblout '+domtblout_filename+' '+pfam_hmm_filename+' '+protein_filename+' >/dev/null 2>/dev/null' 
+    status1 = os.system(cmd1)
+    
+    besthit_filename = domtblout_filename+'.besthit'
+    cmd2 = '/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/cath-resolve-hits.ubuntu14.04 --input-format hmmer_domtblout '+domtblout_filename+' >'+besthit_filename
+    status2 = os.system(cmd2)
+    os.remove(domtblout_filename)
+    return status1,cmd1,status2,cmd2,genome
+
+def runningKegg(protein_filename,kegg_hmm_filename,domtblout_filename,genome):
+    cmd1 = 'hmmsearch -E 1e-3 --cpu '+str(1)+' --domtblout '+domtblout_filename+' '+kegg_hmm_filename+' '+protein_filename+' >/dev/null 2>/dev/null' 
+    status1 = os.system(cmd1)
+    
+    besthit_filename = domtblout_filename+'.besthit'
+    cmd2 = '/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/cath-resolve-hits.ubuntu14.04 --input-format hmmer_domtblout '+domtblout_filename+' >'+besthit_filename
+    status2 = os.system(cmd2)
+    os.remove(domtblout_filename)
+    return status1,cmd1,status2,cmd2,genome
+
+def runningSignalp6(protein_filename,signalp_filename,signalp_directory,genome) :
     log_filename = '/dev/null'
     cmd = 'source /env/cns/proj/agc/scratch/conda/miniconda.profile && conda activate signalp-6.0 && signalp6 -m fast -fmt txt  -ff '+protein_filename+' -wp 1 -od '+signalp_directory+' > '+log_filename+' 2>>'+log_filename
     status = os.system(cmd)
-    
     if status == 0 :
         output=open(signalp_filename,'w')
         file = open(signalp_directory+'/'+'prediction_results.txt','r')
@@ -25,7 +52,6 @@ def runningSignalp(protein_filename,signalp_filename,signalp_directory,genome) :
                 output.write(defline+"\t"+result+"\n")
         file.close()
         output.close()
-
     return status,cmd,genome
 
 def runningSignalP5(protein_filename,signalp_filename,log_filename,genome) :
@@ -33,9 +59,6 @@ def runningSignalP5(protein_filename,signalp_filename,log_filename,genome) :
     print(cmd)
     status = os.system(cmd)
     return status, cmd, genome
-
-
-
 
 def domtblout_is_ok(domtblout_filename) :
     file = open(domtblout_filename)
@@ -47,28 +70,6 @@ def domtblout_is_ok(domtblout_filename) :
         return True
     else:
         return False
-
-
-def runningPfam(protein_filename,pfam_hmm_filename,domtblout_filename,genome):
-    cmd1 = 'hmmsearch -E 1e-3 --cpu '+str(1)+' --domtblout '+domtblout_filename+' '+pfam_hmm_filename+' '+protein_filename+' >/dev/null 2>/dev/null' 
-    status1 = os.system(cmd1)
-    
-    besthit_filename = domtblout_filename+'.besthit'
-    cmd2 = '/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/cath-resolve-hits.ubuntu14.04 --input-format hmmer_domtblout '+domtblout_filename+' >'+besthit_filename
-    status2 = os.system(cmd2)
-    os.remove(domtblout_filename)
-    return status1,cmd1,status2,cmd2,genome
-
-
-def runningKegg(protein_filename,kegg_hmm_filename,domtblout_filename,genome):
-    cmd1 = 'hmmsearch -E 1e-3 --cpu '+str(1)+' --domtblout '+domtblout_filename+' '+kegg_hmm_filename+' '+protein_filename+' >/dev/null 2>/dev/null' 
-    status1 = os.system(cmd1)
-    
-    besthit_filename = domtblout_filename+'.besthit'
-    cmd2 = '/env/cns/proj/agc/home/rmeheust/scripts/usefulScripts/cath-resolve-hits.ubuntu14.04 --input-format hmmer_domtblout '+domtblout_filename+' >'+besthit_filename
-    status2 = os.system(cmd2)
-    os.remove(domtblout_filename)
-    return status1,cmd1,status2,cmd2,genome
 
 
 def gettingTMHMM(genomeSet,orfSet,tmhmm_directory) :
@@ -88,7 +89,6 @@ def gettingTMHMM(genomeSet,orfSet,tmhmm_directory) :
         file.close()
     return orf2tmhmm
 
-
 def gettingSignalP(genomeSet,orfSet,signalp_directory) :
     orf2signalp = dict()
     for genome in genomeSet :
@@ -107,11 +107,10 @@ def gettingSignalP(genomeSet,orfSet,signalp_directory) :
         file.close()
     return orf2signalp
 
-def gettingKegg(genomeSet,orfSet,kegg_directory) :
+def gettingKegg(genomeSet,orfSet,kegg_directory,kegg_info_filename) :
     print('reading kegg....')
     accession2keggDescription = dict()
-    filename = '/env/cns/proj/projet_CSX/scratch/bank/kegg/release_100.0/ko_list'
-    file = open(filename,"r")
+    file = open(kegg_info_filename,"r")
     for line in file :
         line = line.rstrip()
         liste = line.split("\t")
@@ -164,12 +163,11 @@ def gettingTaxonomy(genomeSet,gtdb_taxonomy_filename) :
     file.close()
     return genome2taxonomy
 
-def gettingPfam(genomeSet,orfSet,pfam_directory) :
+def gettingPfam(genomeSet,orfSet,pfam_directory,pfam_info_filename) :
     print('reading pfam....')
     name2pfam = dict()
     pfam2name = dict()
-    info_filename = '/env/cns/proj/projet_CSX/scratch/bank/pfam/release_35.0/Pfam-A.clans.tsv'
-    file = open(info_filename,"r")
+    file = open(pfam_info_filename,"r")
     for line in file :
         line = line.rstrip()
         accession,clanAccession,clanName,name,description = line.split("\t")
@@ -218,3 +216,8 @@ def prodigal2featureFile(prodigal_filename,feature_filename,genome2path) :
             strand = liste[3]
             output.write(orf+'\t'+genome+'\t'+scaffold+'\t'+start+'\t'+end+'\t'+strand+'\n')
     output.close()
+
+
+
+if __name__ == "__main__":
+    print(annotations.__name__)
